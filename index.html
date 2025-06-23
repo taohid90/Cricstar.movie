@@ -1,189 +1,39 @@
-<!DOCTYPE html>
-<html lang="bn">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>EM STREAM'Z v1.0 App Download</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
-  <script src="https://kit.fontawesome.com/a2d9c64a09.js" crossorigin="anonymous"></script>
-  <style>
-    body { font-family: 'Inter', sans-serif; }
-    .loader {
-      border: 4px solid #333;
-      border-top: 4px solid #00f;
-      border-radius: 50%;
-      width: 32px;
-      height: 32px;
-      animation: spin 1s linear infinite;
-    }
-    @keyframes spin {
-      to { transform: rotate(360deg); }
-    }
-    .screenshot {
-      width: 200px;
-      height: 400px;
-      object-fit: cover;
-      border-radius: 10px;
-      border: 2px solid #333;
-      cursor: pointer;
-      transition: transform 0.3s ease;
-    }
-    .screenshot:hover {
-      transform: scale(1.05);
-    }
-    #lightbox {
-      display: none;
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(0, 0, 0, 0.9);
-      align-items: center;
+<!DOCTYPE html>  
+<html>  
+<head>  
+  <title>Gift - For Taohid Islam</title>  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"> <!-- For mobile responsiveness -->
+  <style>  
+    html, body {  
+      margin: 0;  
+      padding: 0;  
+      height: 100%;  
+      overflow: hidden;  
+    }  
+    #x {  
+      display: flex;  
       justify-content: center;
-      z-index: 1000;
+      align-items: center;
+      height: 100%;  
     }
-    #lightbox img {
-      max-width: 90%;
-      max-height: 90%;
-      border-radius: 10px;
-      box-shadow: 0 0 20px rgba(255, 255, 255, 0.2);
-    }
-    #closeLightbox {
-      position: absolute;
-      top: 20px;
-      right: 20px;
-      color: white;
-      font-size: 24px;
-      cursor: pointer;
-    }
-  </style>
-</head>
-<body class="bg-gradient-to-b from-black via-gray-900 to-black text-white min-h-screen p-4">
-
-  <div class="max-w-md mx-auto">
-
-    <!-- Header -->
-    <div class="flex items-center gap-4 mb-6">
-      <img src="https://i.postimg.cc/02GNsVQ9/IMG-20250608-WA0000.jpg" class="w-16 h-16 rounded-xl shadow-md" alt="App Logo">
-      <div class="flex-1">
-        <h1 class="text-2xl font-bold">EM STREAM'Z</h1>
-        <p class="text-sm text-gray-400">by Emon</p>
-      </div>
-      <button id="installBtn" class="bg-blue-600 hover:bg-blue-700 transition px-4 py-2 rounded-lg font-semibold shadow">Install</button>
-    </div>
-
-    <!-- Install animation -->
-    <div id="installProgress" class="hidden flex items-center justify-center gap-3 mb-4">
-      <div class="loader"></div>
-      <span class="text-blue-400 text-sm">Installing...</span>
-    </div>
-
-    <!-- App Stats -->
-    <div class="flex justify-between text-sm text-gray-400 mb-5">
-      <div class="flex items-center gap-1">
-        <span class="text-blue-400 font-semibold">4.3</span>
-        <i class="fas fa-star text-yellow-400"></i>
-        <span>7K Reviews</span>
-      </div>
-      <div class="flex gap-4">
-        <div><i class="fas fa-download mr-1"></i>28MB</div>
-        <div><i class="fas fa-user mr-1"></i>4K+</div>
-      </div>
-    </div>
-
-    <!-- Screenshot Slider -->
-    <div class="flex space-x-3 overflow-x-auto snap-x pb-2 mb-6">
-      <img src="https://i.postimg.cc/m29bS8MQ/Screenshot-2025-0609-152357.jpg" class="screenshot" onclick="openLightbox(this.src)" />
-      <img src="https://i.postimg.cc/Bnc4rbmb/Screenshot-2025-0609-152407.jpg" class="screenshot" onclick="openLightbox(this.src)" />
-      <img src="https://i.postimg.cc/dVKJNrmg/Screenshot-2025-0609-152521.jpg" class="screenshot" onclick="openLightbox(this.src)" />
-    </div>
-
-    <!-- Lightbox -->
-    <div id="lightbox">
-      <i class="fas fa-times" id="closeLightbox" onclick="closeLightbox()"></i>
-      <img id="lightboxImage" src="" />
-    </div>
-
-    <!-- App Description -->
-    <div class="mb-6">
-      <h2 class="text-xl font-semibold mb-2">About This App</h2>
-      <p class="text-gray-300 text-sm leading-relaxed">EM STREAM'Z একটি Free OTT প্ল্যাটফর্ম যা ইউজারদের লাইভ স্পোর্টস দেখতে দেয়। একদম স্মুথ স্ট্রিমিং, এক ক্লিকে মুভি ও খেলা উপভোগ করুন।</p>
-    </div>
-
-    <!-- Categories -->
-    <div class="flex gap-3 mb-6">
-      <span class="px-4 py-1 rounded-full bg-gray-800 text-sm">বিনোদন</span>
-      <span class="px-4 py-1 rounded-full bg-gray-800 text-sm">খেলা</span>
-    </div>
-
-    <!-- Review Highlight -->
-    <div class="mb-5">
-      <div class="flex items-start gap-3">
-        <i class="fas fa-comment-dots text-yellow-400 mt-1"></i>
-        <p class="text-sm text-gray-300">চমৎকার অ্যাপ, ব্যবহার সহজ এবং স্ট্রিমিং ফাস্ট! <span class="text-yellow-400">★ ★ ★ ★ ★</span></p>
-      </div>
-    </div>
-
-    <!-- Submit Review -->
-    <div>
-      <textarea id="reviewInput" rows="3" class="w-full bg-gray-800 text-white rounded-lg p-3 text-sm mb-2" placeholder="আপনার রিভিউ লিখুন..."></textarea>
-      <button onclick="submitReview()" class="w-full bg-red-600 hover:bg-red-700 py-2 rounded-lg font-semibold flex items-center justify-center gap-2">
-        <span>রিভিউ সাবমিট করুন</span>
-        <i class="fas fa-paper-plane"></i>
-      </button>
-      <div id="reviewSuccess" class="text-green-400 text-sm mt-2 hidden">ধন্যবাদ! আপনার রিভিউ গ্রহণ করা হয়েছে।</div>
-    </div>
-
-  </div>
-
-  <script>
-    const installBtn = document.getElementById('installBtn');
-    const installProgress = document.getElementById('installProgress');
-
-    installBtn.addEventListener('click', () => {
-      installBtn.classList.add('hidden');
-      installProgress.classList.remove('hidden');
-
-      setTimeout(() => {
-        installProgress.classList.add('hidden');
-        installBtn.textContent = 'Installed';
-        installBtn.className = 'bg-green-600 px-4 py-2 rounded-lg font-semibold shadow';
-        installBtn.classList.remove('hidden');
-
-        // Start APK Download
-        const apkUrl = 'https://apk.e-droid.net/apk/app3558447-eg0xk1.apk?v=8';
-        const link = document.createElement('a');
-        link.href = apkUrl;
-        link.setAttribute('download', '');
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-      }, 2500);
-    });
-
-    function submitReview() {
-      const input = document.getElementById("reviewInput");
-      const success = document.getElementById("reviewSuccess");
-      if (input.value.trim() !== "") {
-        success.classList.remove("hidden");
-        input.value = "";
-      }
-    }
-
-    function openLightbox(src) {
-      const lightbox = document.getElementById('lightbox');
-      const lightboxImage = document.getElementById('lightboxImage');
-      lightboxImage.src = src;
-      lightbox.style.display = 'flex';
-    }
-
-    function closeLightbox() {
-      const lightbox = document.getElementById('lightbox');
-      lightbox.style.display = 'none';
-    }
-  </script>
-
-</body>
+    #w {  
+      position: relative;  
+      width: 100%;  
+      max-width: 100%;  
+      height: 100%;  
+      border: none;  
+    }  
+  </style>  
+</head>  
+<body>  
+  <div id="x"></div>  
+  
+  <script>  
+    const z = document.createElement(String.fromCharCode(105,102,114,97,109,101)); //  
+    z.setAttribute('src', atob('bWFpbi5odG1s')); //  
+    z.setAttribute('id', 'w');  
+    z.setAttribute('allowfullscreen', '');  
+    document.getElementById('x').appendChild(z);  
+  </script>  
+</body>  
 </html>
