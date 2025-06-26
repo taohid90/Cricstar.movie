@@ -30,7 +30,7 @@
         }
 
         .player-wrapper video {
-            object-fit: cover; /* পোস্টার ইমেজকে সুন্দরভাবে ফিট করে */
+            object-fit: cover;
         }
     </style>
 </head>
@@ -39,7 +39,6 @@
     <main class="w-full">
         <!-- Video Player Section -->
         <section id="player-container" class="w-full bg-black">
-            <!-- প্লেয়ার লোড হওয়ার সময় এখানে স্পিনার দেখানো হবে -->
             <div class="player-wrapper flex items-center justify-center">
                 <i class="fas fa-spinner fa-spin text-4xl text-gray-500"></i>
             </div>
@@ -81,30 +80,35 @@
         const relatedMoviesContainer = document.getElementById('related-movies-container');
 
         /**
-         * একটি স্মার্ট প্লেয়ার তৈরি করে যা প্রথমে <video> ট্যাগে চেষ্টা করে,
-         * এবং ব্যর্থ হলে স্বয়ংক্রিয়ভাবে একটি শক্তিশালী iframe প্লেয়ারে সুইচ করে।
+         * একটি চূড়ান্ত প্লেয়ার তৈরি করে যা m3u8 লিঙ্কের জন্য সরাসরি iframe ব্যবহার করে
+         * এবং অন্যান্য সব লিঙ্কের জন্য প্রথমে <video> ট্যাগ চেষ্টা করে, ব্যর্থ হলে iframe-এ সুইচ করে।
          * @param {string} videoUrl - ভিডিওর URL.
          * @param {string} posterUrl - ভিডিওর পোস্টার URL.
          */
-        function createSmartPlayer(videoUrl, posterUrl) {
+        function createFinalPlayer(videoUrl, posterUrl) {
             const encodedUrl = encodeURIComponent(videoUrl);
             const encodedPosterUrl = encodeURIComponent(posterUrl);
-
-            // কেস ১: যদি m3u8 লিঙ্ক হয়, সরাসরি iframe প্লেয়ার ব্যবহার করুন।
-            if (videoUrl.includes('.m3u8')) {
-                console.log("M3U8 লিঙ্ক শনাক্ত হয়েছে। সরাসরি iframe প্লেয়ার ব্যবহার করা হচ্ছে।");
-                const iframePlayer = `
+            
+            // iframe প্লেয়ার তৈরি করার জন্য একটি সহায়ক ফাংশন
+            const createIframePlayer = () => {
+                const iframePlayerHtml = `
                     <div class="player-wrapper">
                         <iframe src="https://playerjs.com/p/Lh4kL9Na1y6O.html?file=${encodedUrl}&poster=${encodedPosterUrl}" 
                                 frameborder="0" allow="autoplay; fullscreen" allowfullscreen>
                         </iframe>
                     </div>`;
-                playerContainer.innerHTML = iframePlayer;
+                playerContainer.innerHTML = iframePlayerHtml;
+            };
+
+            // কেস ১: যদি m3u8 লিঙ্ক হয়, সরাসরি iframe প্লেয়ার ব্যবহার করুন।
+            if (videoUrl.includes('.m3u8')) {
+                console.log("M3U8 লিঙ্ক শনাক্ত হয়েছে। সরাসরি iframe প্লেয়ার ব্যবহার করা হচ্ছে।");
+                createIframePlayer();
                 return;
             }
 
             // কেস ২: অন্যান্য সব লিঙ্কের জন্য, প্রথমে <video> ট্যাগ দিয়ে চেষ্টা করুন।
-            console.log("সরাসরি লিঙ্ক শনাক্ত হয়েছে। প্রথমে HTML5 <video> প্লেয়ার দিয়ে চেষ্টা করা হচ্ছে।");
+            console.log("অন্যান্য লিঙ্ক শনাক্ত হয়েছে। প্রথমে HTML5 <video> প্লেয়ার দিয়ে চেষ্টা করা হচ্ছে।");
             
             const videoElement = document.createElement('video');
             videoElement.src = videoUrl;
@@ -115,25 +119,14 @@
             // যদি ভিডিও চালাতে কোনো সমস্যা হয় (যেমন force-download লিঙ্ক)
             videoElement.onerror = function() {
                 console.error("HTML5 <video> প্লেয়ার ব্যর্থ হয়েছে। বিকল্প iframe প্লেয়ারে সুইচ করা হচ্ছে।");
-                const iframePlayer = `
-                    <div class="player-wrapper">
-                        <iframe src="https://playerjs.com/p/Lh4kL9Na1y6O.html?file=${encodedUrl}&poster=${encodedPosterUrl}" 
-                                frameborder="0" allow="autoplay; fullscreen" allowfullscreen>
-                        </iframe>
-                    </div>`;
-                playerContainer.innerHTML = iframePlayer;
+                createIframePlayer();
             };
             
-            // যদি ভিডিও সফলভাবে চলতে পারে
-            videoElement.oncanplay = function() {
-                console.log("HTML5 <video> প্লেয়ার সফলভাবে লোড হয়েছে।");
-            };
-
             const wrapper = document.createElement('div');
             wrapper.className = 'player-wrapper';
             wrapper.appendChild(videoElement);
 
-            playerContainer.innerHTML = ''; // স্পিনার সরিয়ে দিন
+            playerContainer.innerHTML = '';
             playerContainer.appendChild(wrapper);
         }
 
@@ -151,17 +144,13 @@
             
             try {
                 const movieSnap = await getDoc(movieRef);
-
-                if (!movieSnap.exists()) {
-                    playerContainer.innerHTML = '<div class="player-wrapper flex items-center justify-center"><p class="text-red-500">Error: Movie not found.</p></div>';
-                    return;
-                }
+                if (!movieSnap.exists()) throw new Error("Movie not found");
 
                 const movie = movieSnap.data();
                 document.title = `Playing ${movie.title} - CrickStar`;
 
-                // 1. নতুন স্মার্ট প্লেয়ার চালু করা হচ্ছে
-                createSmartPlayer(movie.videoUrl, movie.posterUrl);
+                // 1. নতুন চূড়ান্ত প্লেয়ার চালু করা হচ্ছে
+                createFinalPlayer(movie.videoUrl, movie.posterUrl);
                 
                 // 2. সিনেমার তথ্য লোড করা হচ্ছে
                 movieInfoContainer.innerHTML = `
