@@ -8,11 +8,9 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet" />
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Baloo+2&display=swap');
-        body { font-family: 'Baloo 2', cursive; transition: background-color 0.3s; }
+        body { font-family: 'Baloo 2', cursive; }
         .scrollbar-hide::-webkit-scrollbar { display: none; }
         .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
-        body.overflow-hidden { overflow: hidden; }
-        
         .player-wrapper {
              position: relative; width: 100%; padding-top: 56.25%; background-color: #000;
         }
@@ -20,25 +18,32 @@
             position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: 0;
         }
         .player-wrapper video { object-fit: cover; }
-
-        .action-btn { transition: all 0.2s ease-in-out; }
-        .action-btn:hover { color: #1DB954; }
-        .action-btn.active { color: #1DB954; font-weight: bold; }
-
+        .action-btn {
+            transition: all 0.2s ease-in-out;
+        }
+        .action-btn:hover {
+            transform: translateY(-2px);
+            color: #1DB954;
+        }
+        .action-btn.active {
+            color: #1DB954;
+        }
         #comment-section {
             position: fixed; bottom: 0; left: 0; right: 0; height: 70%;
             background-color: #121212; border-top: 1px solid #282828;
             transform: translateY(100%); transition: transform 0.4s ease-in-out; z-index: 50;
         }
-        #comment-section.open { transform: translateY(0); }
-
+        #comment-section.open {
+            transform: translateY(0);
+        }
         .related-movie-card img { transition: transform 0.3s ease-in-out; }
         .related-movie-card:hover img { transform: scale(1.05); }
     </style>
 </head>
 <body class="bg-black text-white">
 
-    <main class="w-full">
+    <!-- পরিবর্তন: pb-40 কে pb-16 করা হয়েছে অতিরিক্ত স্পেস কমাতে -->
+    <main class="w-full pb-16">
         <!-- ভিডিও প্লেয়ার সেকশন -->
         <section id="player-container" class="w-full bg-black">
             <div class="player-wrapper flex items-center justify-center">
@@ -46,35 +51,47 @@
             </div>
         </section>
 
-        <!-- ইন্টারেকশন বার -->
-        <section id="action-bar" class="p-4 md:px-6 flex items-center justify-between flex-wrap gap-4 text-gray-400 bg-gray-900/50 border-y border-gray-800">
-            <div class="flex items-center space-x-6">
-                <button id="like-btn" class="action-btn flex items-center space-x-2"><i class="far fa-thumbs-up text-xl"></i><span id="like-count">0</span></button>
-                <button id="dislike-btn" class="action-btn flex items-center space-x-2"><i class="far fa-thumbs-down text-xl"></i><span id="dislike-count">0</span></button>
-                <button id="comment-btn" class="action-btn flex items-center space-x-2"><i class="far fa-comment-alt text-xl"></i><span>Comment</span></button>
+        <!-- লাইক, কমেন্ট, রিপোর্ট সেকশন -->
+        <section id="action-bar" class="p-4 md:px-6 flex items-center justify-between text-gray-400 border-b border-gray-800">
+            <div class="flex space-x-6">
+                <button id="like-btn" class="action-btn flex items-center space-x-2">
+                    <i class="far fa-thumbs-up text-xl"></i>
+                    <span id="like-count">0</span>
+                </button>
+                <button id="dislike-btn" class="action-btn flex items-center space-x-2">
+                    <i class="far fa-thumbs-down text-xl"></i>
+                    <span id="dislike-count">0</span>
+                </button>
+                <button id="comment-btn" class="action-btn flex items-center space-x-2">
+                    <i class="far fa-comment-alt text-xl"></i>
+                    <span>Comment</span>
+                </button>
             </div>
-            <button id="report-btn" class="action-btn flex items-center space-x-2"><i class="far fa-flag text-xl"></i><span>Report</span></button>
+            <button id="report-btn" class="action-btn flex items-center space-x-2">
+                <i class="far fa-flag text-xl"></i>
+                <span>Report</span>
+            </button>
         </section>
 
-        <!-- সিনেমার তথ্য -->
+        <!-- সিনেমার তথ্য সেকশন -->
         <section id="movie-info" class="p-4 md:p-6"></section>
 
-        <!-- সম্পর্কিত সিনেমা -->
+        <!-- সম্পর্কিত সিনেমা সেকশন -->
         <section id="related-movies" class="p-4 md:p-6">
              <h3 class="text-white text-lg font-semibold mb-3">Related Movies</h3>
              <div id="related-movies-container" class="flex space-x-3 overflow-x-auto scrollbar-hide pb-2"></div>
         </section>
     </main>
 
-    <!-- কমেন্ট বক্স (লুকানো) -->
+    <!-- কমেন্ট বক্স (ডিফল্টভাবে লুকানো) -->
     <section id="comment-section" class="flex flex-col">
-        <header class="p-4 border-b border-gray-700 flex justify-between items-center flex-shrink-0">
+        <header class="p-4 border-b border-gray-700 flex justify-between items-center">
             <h3 class="text-lg font-semibold">Comments</h3>
-            <button id="close-comments-btn" class="text-2xl hover:text-white">×</button>
+            <button id="close-comments-btn" class="text-2xl">×</button>
         </header>
         <div id="comments-list" class="flex-grow p-4 overflow-y-auto"></div>
-        <form id="comment-form" class="p-4 border-t border-gray-700 flex items-center flex-shrink-0">
-            <input id="comment-input" type="text" class="w-full bg-gray-800 text-white rounded-l-md p-2 focus:outline-none focus:ring-2 focus:ring-green-500" placeholder="Add a comment...">
+        <form id="comment-form" class="p-4 border-t border-gray-700 flex items-center">
+            <input id="comment-input" type="text" class="w-full bg-gray-800 text-white rounded-l-md p-2 focus:outline-none" placeholder="Add a comment...">
             <button type="submit" class="bg-green-600 text-white p-2 rounded-r-md hover:bg-green-700">Send</button>
         </form>
     </section>
@@ -82,7 +99,7 @@
     <!-- Firebase SDK -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
-        import { getFirestore, doc, getDoc, onSnapshot, collection, query, orderBy, addDoc, serverTimestamp, updateDoc, increment, getDocs, where, limit } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
+        import { getFirestore, doc, onSnapshot, collection, query, orderBy, addDoc, serverTimestamp, updateDoc, increment, getDocs, where, limit } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
         
         const firebaseConfig = {
             apiKey: "AIzaSyAb8YsPMOY53GxiycCL6G0MPZdgWe3nnyY",
@@ -98,72 +115,113 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
-        // DOM এলিমেন্ট সিলেকশন
-        const playerContainer = document.getElementById('player-container'), movieInfoContainer = document.getElementById('movie-info'), relatedMoviesContainer = document.getElementById('related-movies-container');
+        const playerContainer = document.getElementById('player-container');
+        const movieInfoContainer = document.getElementById('movie-info');
+        const relatedMoviesContainer = document.getElementById('related-movies-container');
         const likeBtn = document.getElementById('like-btn'), dislikeBtn = document.getElementById('dislike-btn'), commentBtn = document.getElementById('comment-btn'), reportBtn = document.getElementById('report-btn');
         const likeCountSpan = document.getElementById('like-count'), dislikeCountSpan = document.getElementById('dislike-count');
         const commentSection = document.getElementById('comment-section'), closeCommentsBtn = document.getElementById('close-comments-btn'), commentForm = document.getElementById('comment-form'), commentInput = document.getElementById('comment-input'), commentsList = document.getElementById('comments-list');
 
         let movieRef;
 
-        /** একটি চূড়ান্ত এবং নিখুঁত প্লেয়ার তৈরি করে */
-        function createFinalPlayer(videoUrl, posterUrl) { /* ... পূর্ববর্তী কোড অপরিবর্তিত ... */ }
+        function createFinalPlayer(videoUrl, posterUrl) {
+            const lowerCaseUrl = videoUrl.toLowerCase();
+            let playerHtml;
+            const directVideoExtensions = ['.mp4', '.mkv', '.webm', '.ogg', '.ogv'];
+            const isDirectVideo = directVideoExtensions.some(ext => lowerCaseUrl.endsWith(ext)) || lowerCaseUrl.includes('r2.dev');
 
-        /** সম্পর্কিত সিনেমা লোড করে */
-        async function loadRelatedMovies(categoryId, currentMovieId) { /* ... পূর্ববর্তী কোড অপরিবর্তিত ... */ }
+            if (isDirectVideo) {
+                playerHtml = `<video controls autoplay poster="${posterUrl}"><source src="${videoUrl}" type="video/mp4">Your browser does not support the video tag.</video>`;
+            } else {
+                playerHtml = `<iframe src="${videoUrl}" frameborder="0" allow="autoplay; fullscreen; encrypted-media" allowfullscreen></iframe>`;
+            }
+            playerContainer.innerHTML = `<div class="player-wrapper">${playerHtml}</div>`;
+        }
+        
+        async function loadRelatedMovies(categoryId, currentMovieId) {
+            // পরিবর্তন: সম্পর্কিত মুভি লোড হওয়ার আগে একটি মেসেজ দেখানো
+            relatedMoviesContainer.innerHTML = '<p class="text-gray-500">Loading related movies...</p>';
+            try {
+                const moviesQuery = query(collection(db, `categories/${categoryId}/movies`), where("__name__", "!=", currentMovieId), limit(10));
+                const moviesSnapshot = await getDocs(moviesQuery);
 
-        /** সিনেমার ডেটা লোড করার প্রধান ফাংশন */
+                relatedMoviesContainer.innerHTML = ''; // আগের মেসেজ মুছে ফেলা
+                if (moviesSnapshot.empty) {
+                    relatedMoviesContainer.innerHTML = '<p class="text-gray-500">No related movies found.</p>';
+                    return;
+                }
+                moviesSnapshot.forEach(movieDoc => {
+                    const movie = movieDoc.data();
+                    const movieId = movieDoc.id;
+                    const movieCard = document.createElement('div');
+                    movieCard.className = 'flex-shrink-0 w-28 related-movie-card';
+                    movieCard.innerHTML = `<a href="?id=${categoryId}/${movieId}"><img alt="${movie.title}" class="rounded-md w-full h-40 object-cover" src="${movie.posterUrl}" /><p class="text-gray-300 text-xs mt-1 truncate">${movie.title}</p></a>`;
+                    relatedMoviesContainer.appendChild(movieCard);
+                });
+            } catch (error) {
+                console.error("Error loading related movies:", error);
+                relatedMoviesContainer.innerHTML = '<p class="text-red-500">Could not load related movies.</p>';
+            }
+        }
+
         async function loadMovieData() {
+            // পরিবর্তন: ডেটা লোড হওয়ার আগে UI তে লোডিং মেসেজ সেট করা
+            movieInfoContainer.innerHTML = '<p class="text-gray-400">Loading movie details...</p>';
+
             const urlParams = new URLSearchParams(window.location.search);
             const fullId = urlParams.get('id');
             if (!fullId || !fullId.includes('/')) {
-                playerContainer.innerHTML = '<div class="player-wrapper flex items-center justify-center"><p class="text-red-500">Error: Invalid Movie ID.</p></div>';
+                const errorMessage = '<div class="player-wrapper flex items-center justify-center"><p class="text-red-500 text-center">Error: Invalid or missing Movie ID in the URL.<br>Please check the link.</p></div>';
+                playerContainer.innerHTML = errorMessage;
+                movieInfoContainer.innerHTML = ''; // কোনো তথ্য না দেখানো
+                document.getElementById('related-movies').style.display = 'none'; // সম্পর্কিত সেকশন হাইড করা
                 return;
             }
 
             const [categoryId, movieId] = fullId.split('/');
             movieRef = doc(db, `categories/${categoryId}/movies`, movieId);
             
-            try {
-                // ধাপ ১: শুধুমাত্র একবার সিনেমার মূল ডেটা লোড করা (ফ্লিকারিং বন্ধ করতে)
-                const docSnap = await getDoc(movieRef);
-                if (!docSnap.exists()) throw new Error("Movie not found");
-
+            let isFirstLoad = true;
+            onSnapshot(movieRef, (docSnap) => {
+                // পরিবর্তন: মুভি খুঁজে না পেলে পরিষ্কার এরর দেখানো
+                if (!docSnap.exists()) {
+                    console.error("Movie not found in database for ID:", fullId);
+                    const errorMessage = '<div class="player-wrapper flex items-center justify-center"><p class="text-red-500 text-center">Sorry, this movie could not be found.</p></div>';
+                    playerContainer.innerHTML = errorMessage;
+                    movieInfoContainer.innerHTML = '';
+                    document.getElementById('related-movies').style.display = 'none';
+                    return;
+                }
                 const movie = docSnap.data();
-                
-                // পৃষ্ঠা এবং প্লেয়ারের প্রাথমিক কাঠামো তৈরি করা
-                document.title = `Playing ${movie.title} - CrickStar`;
-                createFinalPlayer(movie.videoUrl, movie.posterUrl);
-                movieInfoContainer.innerHTML = `<h1 class="text-3xl md:text-4xl font-bold mb-2">${movie.title}</h1><p class="text-gray-300 max-w-3xl">${movie.description || 'No description available.'}</p>`;
-                
-                // সম্পর্কিত মুভি ও অন্যান্য ইন্টারেক্টিভ ফাংশন সেটআপ করা
-                loadRelatedMovies(categoryId, movieId);
-                setupActionHandlers(movieId);
-                setupCommentSection(categoryId, movieId);
-                
-                // ধাপ ২: শুধুমাত্র লাইক/ডিসলাইকের মতো রিয়েল-টাইম ডেটার জন্য onSnapshot চালু করা
-                onSnapshot(movieRef, (doc) => {
-                    const realtimeData = doc.data();
-                    if (realtimeData) {
-                        likeCountSpan.textContent = realtimeData.likes || 0;
-                        dislikeCountSpan.textContent = realtimeData.dislikes || 0;
-                        updateActionButtonsUI(movieId);
-                    }
-                });
 
-            } catch (error) {
-                console.error("Failed to load movie:", error);
-                playerContainer.innerHTML = '<div class="player-wrapper flex items-center justify-center"><p class="text-red-500">Could not load movie data.</p></div>';
-            }
+                if (isFirstLoad) {
+                    createFinalPlayer(movie.videoUrl, movie.posterUrl);
+                    document.title = `Playing ${movie.title} - CrickStar`;
+                    movieInfoContainer.innerHTML = `<h1 class="text-3xl md:text-4xl font-bold mb-2">${movie.title}</h1><p class="text-gray-300 max-w-3xl">${movie.description || 'No description available.'}</p>`;
+                    loadRelatedMovies(categoryId, movieId);
+                    setupActionHandlers(categoryId, movieId);
+                    setupCommentSection(categoryId, movieId);
+                    isFirstLoad = false;
+                }
+
+                likeCountSpan.textContent = movie.likes || 0;
+                dislikeCountSpan.textContent = movie.dislikes || 0;
+                updateActionButtonsUI(movieId);
+            }, (error) => { // পরিবর্তন: onSnapshot এ কোনো এরর হলে তা ধরা
+                console.error("Error listening to movie data:", error);
+                playerContainer.innerHTML = '<div class="player-wrapper flex items-center justify-center"><p class="text-red-500">Error loading movie data. Please try again later.</p></div>';
+            });
         }
 
-        // --- নিচের ফাংশনগুলো প্রায় অপরিবর্তিত, শুধুমাত্র কিছু পরিচ্ছন্নতা যোগ করা হয়েছে ---
-
-        function setupActionHandlers(movieId) {
+        function setupActionHandlers(categoryId, movieId) {
             const storageKey = `crickstar_action_${movieId}`;
             likeBtn.onclick = () => handleVote('likes', storageKey);
             dislikeBtn.onclick = () => handleVote('dislikes', storageKey);
-            reportBtn.onclick = () => { /* ... */ };
+            reportBtn.onclick = () => {
+                if (confirm("Are you sure you want to report this movie?")) {
+                    updateDoc(movieRef, { reports: increment(1) }).then(() => alert("Thank you for your report."));
+                }
+            };
         }
 
         async function handleVote(voteType, storageKey) {
@@ -189,21 +247,18 @@
 
         function setupCommentSection(categoryId, movieId) {
             const commentsCollectionRef = collection(db, `categories/${categoryId}/movies/${movieId}/comments`);
-            commentBtn.onclick = () => {
-                commentSection.classList.add('open');
-                document.body.classList.add('overflow-hidden');
-            };
-            closeCommentsBtn.onclick = () => {
-                commentSection.classList.remove('open');
-                document.body.classList.remove('overflow-hidden');
-            };
+            commentBtn.onclick = () => commentSection.classList.add('open');
+            closeCommentsBtn.onclick = () => commentSection.classList.remove('open');
             
             commentForm.onsubmit = async (e) => {
                 e.preventDefault();
                 const text = commentInput.value.trim();
                 if (text) {
+                    commentInput.disabled = true; // ইনপুট নিষ্ক্রিয় করা
                     await addDoc(commentsCollectionRef, { text, author: "Anonymous User", createdAt: serverTimestamp() });
                     commentInput.value = '';
+                    commentInput.disabled = false; // আবার সক্রিয় করা
+                    commentInput.focus();
                 }
             };
             listenForComments(commentsCollectionRef);
@@ -214,22 +269,21 @@
             onSnapshot(q, (snapshot) => {
                 commentsList.innerHTML = '';
                 if (snapshot.empty) {
-                    commentsList.innerHTML = '<p class="text-gray-500 text-center py-10">No comments yet. Be the first to comment!</p>';
+                    commentsList.innerHTML = '<p class="text-gray-500 text-center">No comments yet. Be the first to comment!</p>';
                     return;
                 }
                 snapshot.forEach(doc => {
                     const comment = doc.data();
                     const date = comment.createdAt?.toDate().toLocaleString() || 'just now';
                     const commentEl = document.createElement('div');
-                    commentEl.className = 'border-b border-gray-800 py-3';
-                    commentEl.innerHTML = `<div class="flex items-start space-x-3"><i class="fas fa-user-circle text-2xl text-gray-500"></i><div><p class="font-semibold text-white">${comment.author} <span class="text-xs text-gray-500 ml-2 font-normal">${date}</span></p><p class="text-gray-300">${comment.text}</p></div></div>`;
+                    commentEl.className = 'border-b border-gray-700 py-3';
+                    commentEl.innerHTML = `<div class="flex items-start space-x-3"><i class="fas fa-user-circle text-2xl text-gray-400"></i><div><p class="font-semibold">${comment.author} <span class="text-xs text-gray-500 ml-2">${date}</span></p><p class="text-gray-300">${comment.text}</p></div></div>`;
                     commentsList.appendChild(commentEl);
                 });
             });
         }
         
         loadMovieData();
-
     </script>
 </body>
 </html>
