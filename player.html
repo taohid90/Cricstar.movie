@@ -11,6 +11,20 @@
         body { font-family: 'Baloo 2', cursive; }
         .scrollbar-hide::-webkit-scrollbar { display: none; }
         .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+        /* এটি নিশ্চিত করে যে আইফ্রেম এবং ভিডিও উভয়ই পুরো জায়গা নেয় */
+        #player-container > iframe,
+        #player-container > video {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+        #player-container > div {
+             position: relative;
+             width: 100%;
+             padding-top: 56.25%; /* 16:9 Aspect Ratio */
+        }
     </style>
 </head>
 <body class="bg-black text-white">
@@ -19,7 +33,7 @@
         <!-- Video Player Section -->
         <section id="player-container" class="w-full bg-black">
             <!-- The video player will be inserted here by JavaScript -->
-            <div class="aspect-video w-full flex items-center justify-center bg-gray-900">
+            <div class="w-full flex items-center justify-center bg-gray-900" style="aspect-ratio: 16/9;">
                 <p class="text-gray-500">Loading Player...</p>
             </div>
         </section>
@@ -62,8 +76,52 @@
         const movieInfoContainer = document.getElementById('movie-info');
         const relatedMoviesContainer = document.getElementById('related-movies-container');
 
+        /**
+         * ভিডিও লিঙ্কের ধরন পরীক্ষা করে এবং সেই অনুযায়ী <video> বা <iframe> প্লেয়ারের HTML কোড রিটার্ন করে।
+         * @param {string} videoUrl - ভিডিওর URL.
+         * @param {string} posterUrl - ভিডিওর পোস্টার URL.
+         * @returns {string} - প্লেয়ারের জন্য HTML স্ট্রিং.
+         */
+        function getVideoPlayerHtml(videoUrl, posterUrl) {
+            // লিঙ্কটিকে ছোট হাতের অক্ষরে রূপান্তর করে পরীক্ষা করা হচ্ছে
+            const lowerCaseUrl = videoUrl.toLowerCase();
+            
+            // সরাসরি প্লে করা যায় এমন ভিডিও ফরম্যাট (.mp4, .webm, .ogv) চেক করা হচ্ছে
+            const isDirectVideo = lowerCaseUrl.endsWith('.mp4') || 
+                                  lowerCaseUrl.endsWith('.webm') || 
+                                  lowerCaseUrl.endsWith('.ogv');
+            
+            // প্লেয়ারের কন্টেইনারকে 16:9 অ্যাসপেক্ট রেশিও দেওয়া হচ্ছে
+            let playerHtml = '<div style="position: relative; width: 100%; padding-top: 56.25%;">'; // 16:9 Aspect Ratio
+
+            if (isDirectVideo) {
+                // যদি সরাসরি ভিডিও লিঙ্ক হয়, তবে <video> ট্যাগ ব্যবহার করা হবে
+                console.log("শনাক্ত হয়েছে: ডিরেক্ট ভিডিও লিঙ্ক। <video> ট্যাগ ব্যবহার করা হচ্ছে।");
+                playerHtml += `
+                    <video class="absolute top-0 left-0 w-full h-full" controls autoplay poster="${posterUrl}">
+                        <source src="${videoUrl}" type="video/mp4">
+                        Your browser does not support the video tag.
+                    </video>
+                `;
+            } else {
+                // অন্যথায় (যেমন .m3u8 বা অন্য কোনো এমবেডেড লিঙ্ক), <iframe> ব্যবহার করা হবে
+                console.log("শনাক্ত হয়েছে: আইফ্রেম/অন্যান্য লিঙ্ক। <iframe> ট্যাগ ব্যবহার করা হচ্ছে।");
+                playerHtml += `
+                    <iframe 
+                        class="absolute top-0 left-0 w-full h-full" 
+                        src="${videoUrl}" 
+                        frameborder="0" 
+                        allow="autoplay; encrypted-media" 
+                        allowfullscreen>
+                    </iframe>
+                `;
+            }
+            
+            playerHtml += '</div>';
+            return playerHtml;
+        }
+
         async function loadPlayer() {
-            // Get movie ID from URL, e.g., player.html?id=categoryId/movieId
             const urlParams = new URLSearchParams(window.location.search);
             const fullId = urlParams.get('id');
 
@@ -84,25 +142,18 @@
                 }
 
                 const movie = movieSnap.data();
-
-                // Set page title
                 document.title = `Playing ${movie.title} - CrickStar`;
 
-                // 1. Load Video Player
-                playerContainer.innerHTML = `
-                    <video class="w-full h-full" controls autoplay poster="${movie.posterUrl}">
-                        <source src="${movie.videoUrl}" type="video/mp4">
-                        Your browser does not support the video tag.
-                    </video>
-                `;
+                // 1. নতুন ফাংশন ব্যবহার করে ভিডিও প্লেয়ার লোড করা হচ্ছে
+                playerContainer.innerHTML = getVideoPlayerHtml(movie.videoUrl, movie.posterUrl);
                 
-                // 2. Load Movie Info
+                // 2. সিনেমার তথ্য লোড করা হচ্ছে
                 movieInfoContainer.innerHTML = `
                     <h1 class="text-3xl md:text-4xl font-bold mb-2">${movie.title}</h1>
                     <p class="text-gray-300 max-w-3xl">${movie.description || 'No description available.'}</p>
                 `;
 
-                // 3. Load Related Movies (from the same category, excluding the current one)
+                // 3. সম্পর্কিত সিনেমা লোড করা হচ্ছে
                 loadRelatedMovies(categoryId, movieId);
 
             } catch (error) {
@@ -113,7 +164,6 @@
         
         async function loadRelatedMovies(categoryId, currentMovieId) {
             relatedMoviesContainer.innerHTML = '';
-            // Get other movies from the same category
             const moviesQuery = query(collection(db, `categories/${categoryId}/movies`), where("__name__", "!=", currentMovieId), limit(10));
             const moviesSnapshot = await getDocs(moviesQuery);
 
