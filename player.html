@@ -7,11 +7,13 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet" />
     <style>
+        /* প্রধান ফন্ট এবং বেসিক স্টাইল */
         @import url('https://fonts.googleapis.com/css2?family=Baloo+2&display=swap');
         body { font-family: 'Baloo 2', cursive; }
         .scrollbar-hide::-webkit-scrollbar { display: none; }
         .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
         
+        /* ভিডিও প্লেয়ারের কন্টেইনারকে 16:9 অনুপাতে রাখার জন্য */
         .player-wrapper {
              position: relative;
              width: 100%;
@@ -19,6 +21,7 @@
              background-color: #000;
         }
         
+        /* iframe এবং video উভয়কে কন্টেইনারের মধ্যে সম্পূর্ণ জায়গা দেওয়ার জন্য */
         .player-wrapper iframe,
         .player-wrapper video {
             position: absolute;
@@ -29,25 +32,35 @@
             border: 0;
         }
 
+        /* ভিডিওর পোস্টার ইমেজ যেন সুন্দরভাবে ফিট হয় */
         .player-wrapper video {
             object-fit: cover;
+        }
+
+        /* সম্পর্কিত মুভির পোস্টারে সুন্দর হোভার ইফেক্ট */
+        .related-movie-card img {
+            transition: transform 0.3s ease-in-out;
+        }
+        .related-movie-card:hover img {
+            transform: scale(1.05);
         }
     </style>
 </head>
 <body class="bg-black text-white">
 
     <main class="w-full">
-        <!-- Video Player Section -->
+        <!-- ভিডিও প্লেয়ার সেকশন -->
         <section id="player-container" class="w-full bg-black">
+            <!-- প্লেয়ার লোড হওয়ার সময় এখানে একটি সুন্দর স্পিনার দেখানো হবে -->
             <div class="player-wrapper flex items-center justify-center">
                 <i class="fas fa-spinner fa-spin text-4xl text-gray-500"></i>
             </div>
         </section>
 
-        <!-- Movie Info Section -->
+        <!-- সিনেমার তথ্য সেকশন -->
         <section id="movie-info" class="p-4 md:p-6 border-b border-gray-800"></section>
 
-        <!-- Related Movies Section -->
+        <!-- সম্পর্কিত সিনেমা সেকশন -->
         <section id="related-movies" class="p-4 md:p-6">
              <h3 class="text-white text-lg font-semibold mb-3">Related Movies</h3>
              <div id="related-movies-container" class="flex space-x-3 overflow-x-auto scrollbar-hide pb-2">
@@ -61,6 +74,7 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
         import { getFirestore, doc, getDoc, collection, getDocs, query, where, limit } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
         
+        // আপনার Firebase কনফিগারেশন
         const firebaseConfig = {
             apiKey: "AIzaSyAb8YsPMOY53GxiycCL6G0MPZdgWe3nnyY",
             authDomain: "movie-92659.firebaseapp.com",
@@ -72,68 +86,64 @@
             measurementId: "G-XF1TEP0DSJ"
         };
         
+        // Firebase চালু করা
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
+        // DOM এলিমেন্টগুলো সিলেক্ট করা
         const playerContainer = document.getElementById('player-container');
         const movieInfoContainer = document.getElementById('movie-info');
         const relatedMoviesContainer = document.getElementById('related-movies-container');
 
         /**
-         * একটি চূড়ান্ত প্লেয়ার তৈরি করে যা m3u8 লিঙ্কের জন্য সরাসরি iframe ব্যবহার করে
-         * এবং অন্যান্য সব লিঙ্কের জন্য প্রথমে <video> ট্যাগ চেষ্টা করে, ব্যর্থ হলে iframe-এ সুইচ করে।
+         * একটি চূড়ান্ত এবং নিখুঁত প্লেয়ার তৈরি করে যা লিঙ্কের ধরন অনুযায়ী সঠিক প্লেয়ারটি বেছে নেয়।
          * @param {string} videoUrl - ভিডিওর URL.
          * @param {string} posterUrl - ভিডিওর পোস্টার URL.
          */
         function createFinalPlayer(videoUrl, posterUrl) {
-            const encodedUrl = encodeURIComponent(videoUrl);
-            const encodedPosterUrl = encodeURIComponent(posterUrl);
+            const lowerCaseUrl = videoUrl.toLowerCase();
+            let playerHtml;
             
-            // iframe প্লেয়ার তৈরি করার জন্য একটি সহায়ক ফাংশন
-            const createIframePlayer = () => {
-                const iframePlayerHtml = `
-                    <div class="player-wrapper">
-                        <iframe src="https://playerjs.com/p/Lh4kL9Na1y6O.html?file=${encodedUrl}&poster=${encodedPosterUrl}" 
-                                frameborder="0" allow="autoplay; fullscreen" allowfullscreen>
-                        </iframe>
-                    </div>`;
-                playerContainer.innerHTML = iframePlayerHtml;
-            };
+            // সরাসরি প্লে করা যায় এমন ভিডিও ফাইলের এক্সটেনশনগুলো
+            const directVideoExtensions = ['.mp4', '.mkv', '.webm', '.ogg', '.ogv'];
 
-            // কেস ১: যদি m3u8 লিঙ্ক হয়, সরাসরি iframe প্লেয়ার ব্যবহার করুন।
-            if (videoUrl.includes('.m3u8')) {
-                console.log("M3U8 লিঙ্ক শনাক্ত হয়েছে। সরাসরি iframe প্লেয়ার ব্যবহার করা হচ্ছে।");
-                createIframePlayer();
-                return;
+            // নিয়ম ১: লিঙ্কটি কি সরাসরি ভিডিও ফাইল?
+            const isDirectVideo = directVideoExtensions.some(ext => lowerCaseUrl.endsWith(ext)) || lowerCaseUrl.includes('r2.dev');
+
+            if (isDirectVideo) {
+                console.log("শনাক্ত হয়েছে: সরাসরি ভিডিও লিঙ্ক। HTML5 <video> প্লেয়ার ব্যবহার করা হচ্ছে।");
+                playerHtml = `
+                    <video controls autoplay poster="${posterUrl}">
+                        <source src="${videoUrl}" type="video/mp4">
+                        Your browser does not support the video tag.
+                    </video>
+                `;
+            } 
+            // নিয়ম ২: অন্য সব লিঙ্কের জন্য (যেমন .m3u8 বা অন্য কোনো এমবেড)
+            else {
+                console.log("শনাক্ত হয়েছে: এমবেড/iframe লিঙ্ক। সরাসরি <iframe> ব্যবহার করা হচ্ছে।");
+                playerHtml = `
+                    <iframe 
+                        src="${videoUrl}" 
+                        frameborder="0" 
+                        allow="autoplay; fullscreen; encrypted-media" 
+                        allowfullscreen>
+                    </iframe>
+                `;
             }
-
-            // কেস ২: অন্যান্য সব লিঙ্কের জন্য, প্রথমে <video> ট্যাগ দিয়ে চেষ্টা করুন।
-            console.log("অন্যান্য লিঙ্ক শনাক্ত হয়েছে। প্রথমে HTML5 <video> প্লেয়ার দিয়ে চেষ্টা করা হচ্ছে।");
             
-            const videoElement = document.createElement('video');
-            videoElement.src = videoUrl;
-            videoElement.poster = posterUrl;
-            videoElement.autoplay = true;
-            videoElement.controls = true;
-
-            // যদি ভিডিও চালাতে কোনো সমস্যা হয় (যেমন force-download লিঙ্ক)
-            videoElement.onerror = function() {
-                console.error("HTML5 <video> প্লেয়ার ব্যর্থ হয়েছে। বিকল্প iframe প্লেয়ারে সুইচ করা হচ্ছে।");
-                createIframePlayer();
-            };
-            
-            const wrapper = document.createElement('div');
-            wrapper.className = 'player-wrapper';
-            wrapper.appendChild(videoElement);
-
-            playerContainer.innerHTML = '';
-            playerContainer.appendChild(wrapper);
+            // প্লেয়ারটি কন্টেইনারে দেখানো হচ্ছে
+            playerContainer.innerHTML = `<div class="player-wrapper">${playerHtml}</div>`;
         }
 
+        /**
+         * সিনেমার ডেটা লোড করে এবং UI আপডেট করে।
+         */
         async function loadMovieData() {
             const urlParams = new URLSearchParams(window.location.search);
             const fullId = urlParams.get('id');
 
+            // যদি ID সঠিক না হয়, তবে এরর মেসেজ দেখান
             if (!fullId || !fullId.includes('/')) {
                 playerContainer.innerHTML = '<div class="player-wrapper flex items-center justify-center"><p class="text-red-500">Error: Invalid Movie ID.</p></div>';
                 return;
@@ -144,35 +154,38 @@
             
             try {
                 const movieSnap = await getDoc(movieRef);
-                if (!movieSnap.exists()) throw new Error("Movie not found");
+                if (!movieSnap.exists()) throw new Error("Movie not found in database.");
 
                 const movie = movieSnap.data();
                 document.title = `Playing ${movie.title} - CrickStar`;
 
-                // 1. নতুন চূড়ান্ত প্লেয়ার চালু করা হচ্ছে
+                // ১. চূড়ান্ত প্লেয়ার চালু করা
                 createFinalPlayer(movie.videoUrl, movie.posterUrl);
                 
-                // 2. সিনেমার তথ্য লোড করা হচ্ছে
+                // ২. সিনেমার তথ্য দেখানো
                 movieInfoContainer.innerHTML = `
                     <h1 class="text-3xl md:text-4xl font-bold mb-2">${movie.title}</h1>
                     <p class="text-gray-300 max-w-3xl">${movie.description || 'No description available.'}</p>
                 `;
 
-                // 3. সম্পর্কিত সিনেমা লোড করা হচ্ছে
+                // ৩. সম্পর্কিত সিনেমা দেখানো
                 loadRelatedMovies(categoryId, movieId);
 
             } catch (error) {
-                console.error("Error loading movie data: ", error);
-                playerContainer.innerHTML = `<div class="player-wrapper flex items-center justify-center"><p class="text-red-500">Failed to load movie. Check console.</p></div>`;
+                console.error("Error loading movie data:", error);
+                playerContainer.innerHTML = `<div class="player-wrapper flex items-center justify-center"><p class="text-red-500">Failed to load movie. Please try again later.</p></div>`;
             }
         }
         
+        /**
+         * সম্পর্কিত সিনেমাগুলো লোড করে।
+         */
         async function loadRelatedMovies(categoryId, currentMovieId) {
             relatedMoviesContainer.innerHTML = '';
             const moviesQuery = query(collection(db, `categories/${categoryId}/movies`), where("__name__", "!=", currentMovieId), limit(10));
             const moviesSnapshot = await getDocs(moviesQuery);
 
-            if(moviesSnapshot.empty) {
+            if (moviesSnapshot.empty) {
                 relatedMoviesContainer.innerHTML = '<p class="text-gray-500">No related movies found.</p>';
                 return;
             }
@@ -181,7 +194,8 @@
                 const movie = movieDoc.data();
                 const movieId = movieDoc.id;
                 const movieCard = document.createElement('div');
-                movieCard.className = 'flex-shrink-0 w-28';
+                // উন্নত ডিজাইনের জন্য এখানে 'related-movie-card' ক্লাস যোগ করা হয়েছে
+                movieCard.className = 'flex-shrink-0 w-28 related-movie-card';
                 movieCard.innerHTML = `
                     <a href="player.html?id=${categoryId}/${movieId}">
                         <img alt="Poster of ${movie.title}" class="rounded-md w-full h-40 object-cover" src="${movie.posterUrl}" />
@@ -192,6 +206,7 @@
             });
         }
 
+        // পৃষ্ঠা লোড হওয়ার সাথে সাথে প্রধান ফাংশনটি চালু করা
         loadMovieData();
     </script>
 </body>
