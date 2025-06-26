@@ -28,27 +28,20 @@
         }
         .action-btn:hover {
             transform: translateY(-2px);
-            color: #1DB954; /* Spotify Green for hover */
+            color: #1DB954;
         }
         .action-btn.active {
-            color: #1DB954; /* অ্যাক্টিভ বাটনের জন্য সবুজ রঙ */
+            color: #1DB954;
         }
 
         /* কমেন্ট সেকশনের জন্য স্টাইল */
         #comment-section {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            height: 60%; /* স্ক্রিনের ৬০% জায়গা নেবে */
-            background-color: #121212;
-            border-top: 1px solid #282828;
-            transform: translateY(100%); /* ডিফল্টভাবে নিচে লুকানো থাকবে */
-            transition: transform 0.4s ease-in-out;
-            z-index: 50;
+            position: fixed; bottom: 0; left: 0; right: 0; height: 70%;
+            background-color: #121212; border-top: 1px solid #282828;
+            transform: translateY(100%); transition: transform 0.4s ease-in-out; z-index: 50;
         }
         #comment-section.open {
-            transform: translateY(0); /* .open ক্লাস যোগ হলে উপরে উঠে আসবে */
+            transform: translateY(0);
         }
 
         /* সম্পর্কিত মুভির পোস্টারে হোভার ইফেক্ট */
@@ -58,7 +51,7 @@
 </head>
 <body class="bg-black text-white">
 
-    <main class="w-full pb-40"> <!-- কমেন্ট সেকশনের জন্য নিচে জায়গা রাখা হলো -->
+    <main class="w-full pb-40">
         <!-- ভিডিও প্লেয়ার সেকশন -->
         <section id="player-container" class="w-full bg-black">
             <div class="player-wrapper flex items-center justify-center">
@@ -104,9 +97,7 @@
             <h3 class="text-lg font-semibold">Comments</h3>
             <button id="close-comments-btn" class="text-2xl">×</button>
         </header>
-        <div id="comments-list" class="flex-grow p-4 overflow-y-auto">
-            <!-- কমেন্টগুলো এখানে জাভাস্ক্রিপ্ট দিয়ে যোগ করা হবে -->
-        </div>
+        <div id="comments-list" class="flex-grow p-4 overflow-y-auto"></div>
         <form id="comment-form" class="p-4 border-t border-gray-700 flex items-center">
             <input id="comment-input" type="text" class="w-full bg-gray-800 text-white rounded-l-md p-2 focus:outline-none" placeholder="Add a comment...">
             <button type="submit" class="bg-green-600 text-white p-2 rounded-r-md hover:bg-green-700">Send</button>
@@ -116,149 +107,159 @@
     <!-- Firebase SDK -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
-        import { getFirestore, doc, onSnapshot, collection, query, orderBy, addDoc, serverTimestamp, updateDoc, increment } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
+        import { getFirestore, doc, onSnapshot, collection, query, orderBy, addDoc, serverTimestamp, updateDoc, increment, getDocs, where, limit } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
         
+        // আপনার দেওয়া Firebase কনফিগারেশন
         const firebaseConfig = {
-  apiKey: "AIzaSyAb8YsPMOY53GxiycCL6G0MPZdgWe3nnyY",
-  authDomain: "movie-92659.firebaseapp.com",
-  databaseURL: "https://movie-92659-default-rtdb.firebaseio.com",
-  projectId: "movie-92659",
-  storageBucket: "movie-92659.firebasestorage.app",
-  messagingSenderId: "1090734362509",
-  appId: "1:1090734362509:web:86be5583f6e8fcfdfa77c4",
-  measurementId: "G-XF1TEP0DSJ"
-};
+            apiKey: "AIzaSyAb8YsPMOY53GxiycCL6G0MPZdgWe3nnyY",
+            authDomain: "movie-92659.firebaseapp.com",
+            databaseURL: "https://movie-92659-default-rtdb.firebaseio.com",
+            projectId: "movie-92659",
+            storageBucket: "movie-92659.firebasestorage.app",
+            messagingSenderId: "1090734362509",
+            appId: "1:1090734362509:web:86be5583f6e8fcfdfa77c4",
+            measurementId: "G-XF1TEP0DSJ"
+        };
         
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
+        // DOM এলিমেন্টগুলো সিলেক্ট করা
         const playerContainer = document.getElementById('player-container');
         const movieInfoContainer = document.getElementById('movie-info');
         const relatedMoviesContainer = document.getElementById('related-movies-container');
-        
-        // নতুন এলিমেন্টগুলো সিলেক্ট করা
-        const likeBtn = document.getElementById('like-btn');
-        const dislikeBtn = document.getElementById('dislike-btn');
-        const commentBtn = document.getElementById('comment-btn');
-        const reportBtn = document.getElementById('report-btn');
-        const likeCountSpan = document.getElementById('like-count');
-        const dislikeCountSpan = document.getElementById('dislike-count');
-        const commentSection = document.getElementById('comment-section');
-        const closeCommentsBtn = document.getElementById('close-comments-btn');
-        const commentForm = document.getElementById('comment-form');
-        const commentInput = document.getElementById('comment-input');
-        const commentsList = document.getElementById('comments-list');
+        const likeBtn = document.getElementById('like-btn'), dislikeBtn = document.getElementById('dislike-btn'), commentBtn = document.getElementById('comment-btn'), reportBtn = document.getElementById('report-btn');
+        const likeCountSpan = document.getElementById('like-count'), dislikeCountSpan = document.getElementById('dislike-count');
+        const commentSection = document.getElementById('comment-section'), closeCommentsBtn = document.getElementById('close-comments-btn'), commentForm = document.getElementById('comment-form'), commentInput = document.getElementById('comment-input'), commentsList = document.getElementById('comments-list');
 
         let movieRef; // movieRef কে গ্লোবালি ডিক্লেয়ার করা হলো
 
-        /** চূড়ান্ত প্লেয়ার তৈরি করে */
-        function createFinalPlayer(videoUrl, posterUrl) { /* আগের কোডের মতোই */ }
+        /**
+         * একটি চূড়ান্ত এবং নিখুঁত প্লেয়ার তৈরি করে যা লিঙ্কের ধরন অনুযায়ী সঠিক প্লেয়ারটি বেছে নেয়।
+         */
+        function createFinalPlayer(videoUrl, posterUrl) {
+            const lowerCaseUrl = videoUrl.toLowerCase();
+            let playerHtml;
+            const directVideoExtensions = ['.mp4', '.mkv', '.webm', '.ogg', '.ogv'];
+            const isDirectVideo = directVideoExtensions.some(ext => lowerCaseUrl.endsWith(ext)) || lowerCaseUrl.includes('r2.dev');
+
+            if (isDirectVideo) {
+                console.log("শনাক্ত হয়েছে: সরাসরি ভিডিও লিঙ্ক। HTML5 <video> প্লেয়ার ব্যবহার করা হচ্ছে।");
+                playerHtml = `<video controls autoplay poster="${posterUrl}"><source src="${videoUrl}" type="video/mp4">Your browser does not support the video tag.</video>`;
+            } else {
+                console.log("শনাক্ত হয়েছে: এমবেড/iframe লিঙ্ক। সরাসরি <iframe> ব্যবহার করা হচ্ছে।");
+                playerHtml = `<iframe src="${videoUrl}" frameborder="0" allow="autoplay; fullscreen; encrypted-media" allowfullscreen></iframe>`;
+            }
+            playerContainer.innerHTML = `<div class="player-wrapper">${playerHtml}</div>`;
+        }
         
+        /**
+         * সম্পর্কিত সিনেমাগুলো লোড করে।
+         */
+        async function loadRelatedMovies(categoryId, currentMovieId) {
+            relatedMoviesContainer.innerHTML = '';
+            const moviesQuery = query(collection(db, `categories/${categoryId}/movies`), where("__name__", "!=", currentMovieId), limit(10));
+            const moviesSnapshot = await getDocs(moviesQuery);
+
+            if (moviesSnapshot.empty) {
+                relatedMoviesContainer.innerHTML = '<p class="text-gray-500">No related movies found.</p>';
+                return;
+            }
+            moviesSnapshot.forEach(movieDoc => {
+                const movie = movieDoc.data();
+                const movieId = movieDoc.id;
+                const movieCard = document.createElement('div');
+                movieCard.className = 'flex-shrink-0 w-28 related-movie-card';
+                movieCard.innerHTML = `<a href="?id=${categoryId}/${movieId}"><img alt="${movie.title}" class="rounded-md w-full h-40 object-cover" src="${movie.posterUrl}" /><p class="text-gray-300 text-xs mt-1 truncate">${movie.title}</p></a>`;
+                relatedMoviesContainer.appendChild(movieCard);
+            });
+        }
+
         /** সিনেমার ডেটা লোড করে এবং UI আপডেট করে */
         async function loadMovieData() {
             const urlParams = new URLSearchParams(window.location.search);
             const fullId = urlParams.get('id');
-            if (!fullId || !fullId.includes('/')) { /* এরর হ্যান্ডেলিং */ return; }
+            if (!fullId || !fullId.includes('/')) {
+                playerContainer.innerHTML = '<div class="player-wrapper flex items-center justify-center"><p class="text-red-500">Error: Invalid Movie ID.</p></div>';
+                return;
+            }
 
             const [categoryId, movieId] = fullId.split('/');
             movieRef = doc(db, `categories/${categoryId}/movies`, movieId);
             
-            // রিয়েল-টাইম আপডেটের জন্য onSnapshot ব্যবহার করা
+            let isFirstLoad = true; // প্রথমবার লোড হচ্ছে কিনা তা ট্র্যাক করতে
             onSnapshot(movieRef, (docSnap) => {
                 if (!docSnap.exists()) { console.error("Movie not found"); return; }
-
                 const movie = docSnap.data();
-                if (!playerContainer.hasChildNodes() || playerContainer.innerText.includes("Loading")) {
-                     createFinalPlayer(movie.videoUrl, movie.posterUrl);
+
+                if (isFirstLoad) {
+                    createFinalPlayer(movie.videoUrl, movie.posterUrl);
+                    document.title = `Playing ${movie.title} - CrickStar`;
+                    movieInfoContainer.innerHTML = `<h1 class="text-3xl md:text-4xl font-bold mb-2">${movie.title}</h1><p class="text-gray-300 max-w-3xl">${movie.description || 'No description available.'}</p>`;
+                    loadRelatedMovies(categoryId, movieId);
+                    setupActionHandlers(categoryId, movieId);
+                    setupCommentSection(categoryId, movieId);
+                    isFirstLoad = false;
                 }
-                document.title = `Playing ${movie.title} - CrickStar`;
-                movieInfoContainer.innerHTML = `<h1 class="text-3xl md:text-4xl font-bold mb-2">${movie.title}</h1><p class="text-gray-300 max-w-3xl">${movie.description || 'No description available.'}</p>`;
-                
-                // লাইক ও ডিসলাইক সংখ্যা আপডেট করা
+
                 likeCountSpan.textContent = movie.likes || 0;
                 dislikeCountSpan.textContent = movie.dislikes || 0;
-
                 updateActionButtonsUI(movieId);
             });
-
-            // সম্পর্কিত সিনেমা লোড করা (এটি একবারই লোড হবে)
-            loadRelatedMovies(categoryId, movieId);
-            // ইন্টারেক্টিভ ফিচারগুলো সেটআপ করা
-            setupActionHandlers(movieId);
-            setupCommentSection(movieId);
         }
 
-        /** লাইক, ডিসলাইক, কমেন্ট ও রিপোর্ট বাটনের জন্য ইভেন্ট হ্যান্ডেলার সেটআপ করে */
-        function setupActionHandlers(movieId) {
+        function setupActionHandlers(categoryId, movieId) {
             const storageKey = `crickstar_action_${movieId}`;
-
-            likeBtn.onclick = () => handleVote('likes', movieId, storageKey);
-            dislikeBtn.onclick = () => handleVote('dislikes', movieId, storageKey);
-            
+            likeBtn.onclick = () => handleVote('likes', storageKey);
+            dislikeBtn.onclick = () => handleVote('dislikes', storageKey);
             reportBtn.onclick = () => {
                 if (confirm("Are you sure you want to report this movie?")) {
-                    updateDoc(movieRef, { reports: increment(1) });
-                    alert("Thank you for your report.");
+                    updateDoc(movieRef, { reports: increment(1) }).then(() => alert("Thank you for your report."));
                 }
             };
         }
 
-        /** ভোট দেওয়ার লজিক (লাইক/ডিসলাইক) */
-        async function handleVote(voteType, movieId, storageKey) {
+        async function handleVote(voteType, storageKey) {
             const currentVote = localStorage.getItem(storageKey);
             const oppositeVote = voteType === 'likes' ? 'dislikes' : 'likes';
-            
-            if (currentVote === voteType) { // যদি একই বাটনে আবার ক্লিক করে
-                await updateDoc(movieRef, { [voteType]: increment(-1) });
+            let updates = {};
+            if (currentVote === voteType) {
+                updates[voteType] = increment(-1);
                 localStorage.removeItem(storageKey);
             } else {
-                let updates = { [voteType]: increment(1) };
-                if (currentVote) { // যদি ভোট পরিবর্তন করে
-                    updates[oppositeVote] = increment(-1);
-                }
-                await updateDoc(movieRef, updates);
+                updates[voteType] = increment(1);
+                if (currentVote) { updates[oppositeVote] = increment(-1); }
                 localStorage.setItem(storageKey, voteType);
             }
+            await updateDoc(movieRef, updates);
         }
 
-        /** ব্যবহারকারীর আগের ভোটের উপর ভিত্তি করে UI আপডেট করে */
         function updateActionButtonsUI(movieId) {
             const currentVote = localStorage.getItem(`crickstar_action_${movieId}`);
             likeBtn.classList.toggle('active', currentVote === 'likes');
             dislikeBtn.classList.toggle('active', currentVote === 'dislikes');
         }
 
-        /** কমেন্ট সেকশন চালু ও বন্ধ এবং কমেন্ট পোস্ট করার লজিক */
-        function setupCommentSection(movieId) {
+        function setupCommentSection(categoryId, movieId) {
+            const commentsCollectionRef = collection(db, `categories/${categoryId}/movies/${movieId}/comments`);
             commentBtn.onclick = () => commentSection.classList.add('open');
             closeCommentsBtn.onclick = () => commentSection.classList.remove('open');
             
-            // কমেন্ট পোস্ট করার জন্য
             commentForm.onsubmit = async (e) => {
                 e.preventDefault();
                 const text = commentInput.value.trim();
                 if (text) {
-                    const commentsCollectionRef = collection(db, `categories/${movieId.split('/')[0]}/movies/${movieId.split('/')[1]}/comments`);
-                    await addDoc(commentsCollectionRef, {
-                        text: text,
-                        author: "Anonymous User", // আপনি চাইলে এখানে ইউজারনেম ব্যবহার করতে পারেন
-                        createdAt: serverTimestamp()
-                    });
+                    await addDoc(commentsCollectionRef, { text, author: "Anonymous User", createdAt: serverTimestamp() });
                     commentInput.value = '';
                 }
             };
-            
-            // কমেন্টগুলো রিয়েল-টাইমে শোনার জন্য
-            listenForComments(movieId);
+            listenForComments(commentsCollectionRef);
         }
 
-        /** কমেন্টগুলো শোনে এবং UI-তে দেখায় */
-        function listenForComments(movieId) {
-            const commentsCollectionRef = collection(db, `categories/${movieId.split('/')[0]}/movies/${movieId.split('/')[1]}/comments`);
+        function listenForComments(commentsCollectionRef) {
             const q = query(commentsCollectionRef, orderBy('createdAt', 'desc'));
-
             onSnapshot(q, (snapshot) => {
-                commentsList.innerHTML = ''; // আগের কমেন্ট মুছে নতুন করে দেখানো
+                commentsList.innerHTML = '';
                 if (snapshot.empty) {
                     commentsList.innerHTML = '<p class="text-gray-500 text-center">No comments yet. Be the first to comment!</p>';
                     return;
@@ -268,26 +269,13 @@
                     const date = comment.createdAt?.toDate().toLocaleString() || 'just now';
                     const commentEl = document.createElement('div');
                     commentEl.className = 'border-b border-gray-700 py-3';
-                    commentEl.innerHTML = `
-                        <div class="flex items-start space-x-3">
-                            <i class="fas fa-user-circle text-2xl text-gray-400"></i>
-                            <div>
-                                <p class="font-semibold">${comment.author} <span class="text-xs text-gray-500 ml-2">${date}</span></p>
-                                <p class="text-gray-300">${comment.text}</p>
-                            </div>
-                        </div>
-                    `;
+                    commentEl.innerHTML = `<div class="flex items-start space-x-3"><i class="fas fa-user-circle text-2xl text-gray-400"></i><div><p class="font-semibold">${comment.author} <span class="text-xs text-gray-500 ml-2">${date}</span></p><p class="text-gray-300">${comment.text}</p></div></div>`;
                     commentsList.appendChild(commentEl);
                 });
             });
         }
         
-        // আগের ফাংশনগুলো এখানে থাকবে
-        function loadRelatedMovies(categoryId, currentMovieId) { /* আগের মতোই */ }
-
-        // পৃষ্ঠা লোড হলে প্রধান ফাংশন চালু করা
         loadMovieData();
-
     </script>
 </body>
 </html>
