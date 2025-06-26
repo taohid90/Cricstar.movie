@@ -73,14 +73,74 @@
             </div>
         </div>
     </div>
+    
+  <!-- Header -->
+  <header id="main-header" class="fixed top-0 left-0 right-0 z-50 show">
+    <div class="flex items-center justify-between px-6 py-4">
+      <h1 class="text-3xl font-extrabold text-white logo-text select-none">
+        Crick<span class="text-green-300">Star</span>
+      </h1>
+      <div class="flex items-center gap-4">
+        <button id="menu-btn" class="text-white text-2xl"><i class="fas fa-bars"></i></button>
+        <button class="text-white text-2xl"><i class="fas fa-search"></i></button>
+      </div>
+    </div>
+  </header>
 
-    <!-- Header -->
-    <header id="main-header" class="fixed top-0 left-0 right-0 z-20">
-        <div class="flex items-center justify-between px-4 sm:px-6 lg:px-8 py-4 bg-gradient-to-b from-black/60 to-transparent">
-            <h1 class="text-3xl font-extrabold text-white leading-none select-none">Crick<span class="text-green-300">Star</span></h1>
-            <button id="open-search-btn" aria-label="Search" class="text-white text-2xl"><i class="fas fa-search"></i></button>
-        </div>
-    </header>
+  <!-- Navigation Sidebar -->
+  <div id="nav-menu" class="fixed top-0 right-0 w-64 h-full bg-[#121212] z-40 text-white p-6 pt-20 shadow-lg">
+    <div class="close-btn" id="close-nav"><i class="fas fa-times"></i></div>
+    <div class="text-center mb-6">
+      <img src="https://via.placeholder.com/80" alt="User" class="rounded-full mx-auto mb-2 border border-white">
+      <h2 class="text-lg font-semibold">Welcome, User</h2>
+    </div>
+    <ul class="space-y-4 text-lg font-medium">
+      <li><a href="#">একাউন্ট করুন</a></li>
+      <li><a href="#">লগআউট করুন</a></li>
+      <li><a href="#">সেটিংস</a></li>
+    </ul>
+  </div>
+
+  <!-- Dummy Content -->
+  <main class="pt-24 px-6 space-y-10">
+    <p class="text-lg">স্ক্রল করুন হেডার দেখার জন্য...</p>
+    <div class="h-[2000px] bg-gradient-to-b from-gray-800 via-black to-gray-900"></div>
+  </main>
+
+  <!-- JavaScript -->
+  <script>
+    const header = document.getElementById('main-header');
+    let lastScrollY = window.scrollY;
+
+    window.addEventListener('scroll', () => {
+      if (window.scrollY > lastScrollY && window.scrollY > 80) {
+        header.classList.remove('show');
+        header.classList.add('hide');
+      } else {
+        header.classList.remove('hide');
+        header.classList.add('show');
+      }
+      lastScrollY = window.scrollY;
+    });
+
+    // Navigation toggle
+    const menuBtn = document.getElementById('menu-btn');
+    const navMenu = document.getElementById('nav-menu');
+    const closeNav = document.getElementById('close-nav');
+
+    menuBtn.addEventListener('click', () => {
+      navMenu.classList.add('active');
+    });
+
+    closeNav.addEventListener('click', () => {
+      navMenu.classList.remove('active');
+    });
+  </script>
+
+  <!-- Font & Icons -->
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700&display=swap" rel="stylesheet">
+  <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
+
     
     <main class="pt-20"> <!-- Added padding-top to account for fixed header -->
         <!-- Hero Section with Slider -->
