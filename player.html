@@ -118,7 +118,16 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
         import { getFirestore, doc, onSnapshot, collection, query, orderBy, addDoc, serverTimestamp, updateDoc, increment } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
         
-        const firebaseConfig = { /* আপনার ফায়ারবেস কনফিগারেশন এখানে থাকবে */ };
+        const firebaseConfig = {
+  apiKey: "AIzaSyAb8YsPMOY53GxiycCL6G0MPZdgWe3nnyY",
+  authDomain: "movie-92659.firebaseapp.com",
+  databaseURL: "https://movie-92659-default-rtdb.firebaseio.com",
+  projectId: "movie-92659",
+  storageBucket: "movie-92659.firebasestorage.app",
+  messagingSenderId: "1090734362509",
+  appId: "1:1090734362509:web:86be5583f6e8fcfdfa77c4",
+  measurementId: "G-XF1TEP0DSJ"
+};
         
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
