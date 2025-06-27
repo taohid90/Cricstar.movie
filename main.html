@@ -230,6 +230,290 @@
         contentContainer.innerHTML = generateContentSkeleton();
         loadBanners();
         loadContent();
+        (function() {
+    // --- CONFIGURATION OBJECT ---
+    // সমস্ত সেটিংস এখান থেকে সহজেই পরিবর্তন করুন।
+    const CONFIG = {
+        // সময় নির্ধারণ (মিলিসেকেন্ডে)
+        unlockDuration: 60 * 1000,      // আনলক করার জন্য প্রয়োজনীয় সময় (e.g., 60 seconds)
+        blockDuration: 15 * 60 * 1000,  // ট্যাব বন্ধ করলে ব্লক রাখার সময় (e.g., 15 minutes)
+        unlockPeriod: 2 * 60 * 60 * 1000, // একবার আনলক হলে কতক্ষণ পপ-আপ দেখাবে না (e.g., 2 hours)
+        popupGap: 5 * 60 * 1000,        // পরপর পপ-আপ দেখানোর মধ্যে ন্যূনতম ব্যবধান (e.g., 5 minutes)
+        successMessageDuration: 3000,   // সফল বার্তা দেখানোর সময় (e.g., 3 seconds)
+
+        // লিংক এবং রিসোর্স
+        adLink: "https://morallyfitful.com/e9it8uz8m?key=aacbdada524ef4189775c3e7ade92fed",
+        fontAwesomeKit: "https://kit.fontawesome.com/a076d05399.js", // Font Awesome আইকনের জন্য
+
+        // লোকাল স্টোরেজ কী (Keys)
+        keys: {
+            unlockedAt: "smartUnlockTime_v3",
+            blockedUntil: "smartBlockUntil_v3",
+            lastShown: "lastPopupShown_v3",
+        },
+
+        // সমস্ত টেক্সট এখানে পরিবর্তন করুন (ইংরেজি)
+        texts: {
+            initialTitle: "Exclusive Access Required",
+            initialSubtitle: "To continue, please watch a brief promotion. This helps us keep the site free.",
+            buttonIdle: "Start Verification",
+            buttonActive: "Verifying...",
+            timerTitle: "Unlocking in",
+            successTitle: "Verification Complete!",
+            successSubtitle: "Thank you for your support. Enjoy the website!",
+            errorTitle: "Popup Blocked!",
+            errorSubtitle: "Please allow pop-ups for this website and try again. It's required for verification.",
+            errorButton: "I've Enabled Popups, Try Again",
+        },
+    };
+
+    // --- CORE LOGIC ---
+
+    // স্ক্রিপ্ট শুরু করার আগে প্রাথমিক শর্তগুলো পরীক্ষা করা হচ্ছে
+    const now = Date.now();
+    if (now - (parseInt(localStorage.getItem(CONFIG.keys.unlockedAt) || 0)) < CONFIG.unlockPeriod) return;
+    if (now < (parseInt(localStorage.getItem(CONFIG.keys.blockedUntil) || 0))) return;
+    if (now - (parseInt(localStorage.getItem(CONFIG.keys.lastShown) || 0)) < CONFIG.popupGap) return;
+
+    localStorage.setItem(CONFIG.keys.lastShown, now.toString());
+
+    // --- STYLES & SETUP ---
+    // পেজে নতুন স্টাইল যুক্ত করা হচ্ছে
+    function injectStyles() {
+        const style = document.createElement('style');
+        style.innerHTML = `
+            @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap');
+            
+            .su-overlay { /* su = Smart Unlock */
+                position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+                background: rgba(0, 0, 0, 0.6);
+                backdrop-filter: blur(10px) saturate(150%);
+                -webkit-backdrop-filter: blur(10px) saturate(150%);
+                z-index: 999999;
+                display: flex; justify-content: center; align-items: center;
+                font-family: 'Roboto', sans-serif;
+                opacity: 0; transition: opacity 0.4s ease;
+            }
+            .su-overlay.visible { opacity: 1; }
+            .su-modal {
+                background: linear-gradient(145deg, #34495e, #2c3e50);
+                color: #ecf0f1;
+                padding: 35px 45px;
+                border-radius: 20px;
+                max-width: 450px; width: 92%;
+                box-shadow: 0 15px 40px rgba(0,0,0,0.5);
+                border: 1px solid rgba(255, 255, 255, 0.15);
+                text-align: center;
+                transform: scale(0.9); transition: transform 0.4s cubic-bezier(0.18, 0.89, 0.32, 1.28);
+            }
+            .su-overlay.visible .su-modal { transform: scale(1); }
+            .su-title { font-size: 28px; margin: 0 0 12px; font-weight: 700; }
+            .su-subtitle { font-size: 16px; margin: 0 0 30px; color: #bdc3c7; line-height: 1.6; }
+            .su-button {
+                background: linear-gradient(45deg, #e74c3c, #c0392b);
+                color: white; border: none; padding: 15px 35px;
+                font-size: 18px; font-weight: 700; cursor: pointer;
+                border-radius: 10px; display: inline-flex; align-items: center; gap: 12px;
+                transition: all 0.25s ease; box-shadow: 0 5px 20px rgba(231, 76, 60, 0.4);
+            }
+            .su-button:hover:not(:disabled) { transform: translateY(-4px); box-shadow: 0 8px 25px rgba(231, 76, 60, 0.6); }
+            .su-button:active:not(:disabled) { transform: translateY(-1px); }
+            .su-button:disabled { background: #7f8c8d; cursor: not-allowed; box-shadow: none; }
+            .su-progress-container { width: 100%; height: 10px; background-color: rgba(0,0,0,0.2); border-radius: 5px; margin-top: 30px; overflow: hidden; }
+            .su-progress-bar {
+                width: 0%; height: 100%;
+                background: linear-gradient(90deg, #27ae60, #2ecc71);
+                border-radius: 5px; transition: width 0.5s linear;
+                box-shadow: 0 0 10px #2ecc71;
+            }
+            .su-icon-success { font-size: 60px; color: #2ecc71; margin-bottom: 20px; animation: su-pop-in 0.6s ease-out; }
+            .su-icon-error { font-size: 60px; color: #f1c40f; margin-bottom: 20px; }
+            @keyframes su-pop-in { 0% { transform: scale(0.5); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
+        `;
+        document.head.appendChild(style);
+    }
+
+    function loadIcons() {
+        if (!document.querySelector(`script[src="${CONFIG.fontAwesomeKit}"]`)) {
+            const script = document.createElement('script');
+            script.src = CONFIG.fontAwesomeKit;
+            script.crossOrigin = 'anonymous';
+            document.head.appendChild(script);
+        }
+    }
+
+    // --- MODAL & STATE MANAGEMENT ---
+    let state = {
+        overlay: null,
+        modal: null,
+        title: null,
+        subtitle: null,
+        button: null,
+        timerInterval: null,
+        adWindow: null,
+        timeElapsed: 0,
+        startTime: 0,
+        isPaused: false,
+        pauseTime: 0
+    };
+
+    // UI (ইউজার ইন্টারফেস) তৈরি এবং আপডেট করার ফাংশন
+    function updateUI(mode, message = null) {
+        if (!state.modal) return;
+        
+        const { texts } = CONFIG;
+        switch (mode) {
+            case 'IDLE':
+                state.title.innerText = texts.initialTitle;
+                state.subtitle.innerText = texts.initialSubtitle;
+                state.button.innerHTML = `<i class="fas fa-play-circle"></i> ${texts.buttonIdle}`;
+                state.button.disabled = false;
+                break;
+            case 'WAITING':
+                const remaining = Math.max(0, CONFIG.unlockDuration - state.timeElapsed);
+                const seconds = Math.floor((remaining / 1000) % 60);
+                const minutes = Math.floor((remaining / 1000) / 60);
+                state.title.innerText = `${texts.timerTitle} ${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+                
+                if (!state.modal.querySelector('.su-progress-container')) {
+                    state.subtitle.remove();
+                    state.button.innerHTML = `<i class="fas fa-spinner fa-spin"></i> ${texts.buttonActive}`;
+                    state.button.disabled = true;
+                    
+                    const progressContainer = document.createElement('div');
+                    progressContainer.className = 'su-progress-container';
+                    progressContainer.innerHTML = '<div class="su-progress-bar"></div>';
+                    state.modal.appendChild(progressContainer);
+                }
+                const progressBar = state.modal.querySelector('.su-progress-bar');
+                progressBar.style.width = `${(state.timeElapsed / CONFIG.unlockDuration) * 100}%`;
+                break;
+            case 'SUCCESS':
+                state.modal.innerHTML = `
+                    <div class="su-icon-success"><i class="fas fa-check-circle"></i></div>
+                    <h2 class="su-title">${texts.successTitle}</h2>
+                    <p class="su-subtitle">${texts.successSubtitle}</p>
+                `;
+                break;
+            case 'ERROR':
+                state.modal.innerHTML = `
+                    <div class="su-icon-error"><i class="fas fa-exclamation-triangle"></i></div>
+                    <h2 class="su-title">${texts.errorTitle}</h2>
+                    <p class="su-subtitle">${texts.errorSubtitle}</p>
+                    <button class="su-button error-retry">${texts.errorButton}</button>
+                `;
+                state.modal.querySelector('.error-retry').onclick = startVerification;
+                break;
+        }
+    }
+
+    // টাইমার শুরু এবং পরিচালনা করার মূল ফাংশন
+    function startTimer() {
+        state.startTime = Date.now();
+        state.timeElapsed = 0;
+        state.isPaused = false;
+        
+        state.timerInterval = setInterval(() => {
+            if (state.isPaused) return; // যদি পজড থাকে, তাহলে টাইমার আপডেট হবে না
+
+            state.timeElapsed = Date.now() - state.startTime;
+            updateUI('WAITING');
+
+            if (state.timeElapsed >= CONFIG.unlockDuration) {
+                clearInterval(state.timerInterval);
+                localStorage.setItem(CONFIG.keys.unlockedAt, Date.now().toString());
+                updateUI('SUCCESS');
+                
+                if (state.adWindow) state.adWindow.close();
+
+                setTimeout(() => {
+                    state.overlay.classList.remove('visible');
+                    setTimeout(() => state.overlay.remove(), 500);
+                }, CONFIG.successMessageDuration);
+            }
+        }, 200); // প্রতি সেকেন্ডে ৫ বার আপডেট হয়, যা প্রোগ্রেস বারকে স্মুথ করে
+    }
+    
+    // এই ফাংশনটি ব্রাউজার ট্যাব পরিবর্তন হলে টাইমারকে থামিয়ে দেয় এবং চালু করে
+    function handleVisibilityChange() {
+        if (document.hidden) {
+            if (!state.isPaused && state.timerInterval) {
+                state.isPaused = true;
+                state.pauseTime = Date.now(); // কখন পজ হলো, সেই সময়টা সংরক্ষণ করা
+            }
+        } else {
+            if (state.isPaused) {
+                state.isPaused = false;
+                // পজ থাকা অবস্থায় যে সময়টা নষ্ট হয়েছে, সেটা startTime এর সাথে যোগ করে দেওয়া
+                state.startTime += (Date.now() - state.pauseTime);
+            }
+        }
+    }
+
+    // ভেরিফিকেশন প্রক্রিয়া শুরু করার ফাংশন
+    function startVerification() {
+        // পপ-আপ খোলার চেষ্টা করা হচ্ছে
+        state.adWindow = window.open(CONFIG.adLink, "_blank");
+
+        // যদি পপ-আপ ব্লক হয়, তাহলে এরর মেসেজ দেখানো হবে
+        if (!state.adWindow || state.adWindow.closed || typeof state.adWindow.closed == 'undefined') {
+            updateUI('ERROR');
+            return;
+        }
+
+        updateUI('WAITING');
+        startTimer();
+    }
+    
+    // মডাল তৈরি করার ফাংশন
+    function createModal() {
+        injectStyles();
+        loadIcons();
+
+        state.overlay = document.createElement("div");
+        state.overlay.className = "su-overlay";
+
+        state.modal = document.createElement("div");
+        state.modal.className = "su-modal";
+
+        state.title = document.createElement("h2");
+        state.title.className = "su-title";
+
+        state.subtitle = document.createElement("p");
+        state.subtitle.className = "su-subtitle";
+
+        state.button = document.createElement("button");
+        state.button.className = "su-button";
+        
+        state.modal.append(state.title, state.subtitle, state.button);
+        state.overlay.appendChild(state.modal);
+        document.body.appendChild(state.overlay);
+        
+        // প্রাথমিক UI সেট করা
+        updateUI('IDLE');
+
+        // অ্যানিমেশনের সাথে মডাল দেখানো
+        setTimeout(() => state.overlay.classList.add('visible'), 50);
+
+        // মূল বাটনে ক্লিক ইভেন্ট যুক্ত করা
+        state.button.onclick = startVerification;
+
+        // ট্যাব পরিবর্তনের জন্য ইভেন্ট লিসেনার যুক্ত করা
+        document.addEventListener('visibilitychange', handleVisibilityChange);
+        
+        // ব্যবহারকারী যদি টাইমার চলাকালীন ট্যাব বন্ধ করে দেয়
+        window.addEventListener("beforeunload", () => {
+            if (state.timeElapsed > 0 && state.timeElapsed < CONFIG.unlockDuration) {
+                localStorage.setItem(CONFIG.keys.blockedUntil, (Date.now() + CONFIG.blockDuration).toString());
+            }
+        });
+    }
+
+    // --- INITIALIZATION ---
+    // সবকিছু শুরু করা
+    createModal();
+
+})();
 
     </script>
 </body>
