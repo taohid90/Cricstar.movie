@@ -374,8 +374,8 @@
                     const isLive = now >= startTime && now < endTime;
                     const isUpcoming = now < startTime;
                     
-                    // প্লেয়ার পেজের জন্য লিঙ্ক তৈরি করা। Firestore-এর 'videoUrl' ফিল্ড ব্যবহার করবে।
-                    const playerLink = `player.html?stream=${encodeURIComponent(event.videoUrl)}`;
+                    // অ্যাডমিন প্যানেল থেকে দেওয়া সরাসরি লিঙ্ক ব্যবহার করা হচ্ছে।
+const playerLink = event.link || '#'; // 'link' ফিল্ড ব্যবহার করবে, না পেলে '#' ব্যবহার করবে
 
                     const timeString = startTime.toLocaleString('en-US', {
                         month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit', hour12: true
