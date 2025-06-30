@@ -211,6 +211,21 @@
         </div>
         <div class="mt-10 text-center text-xs text-gray-500 border-t border-gray-700 pt-4">© 2025 CrickStar. All rights reserved.</div>
     </footer>
+<style>
+  body {
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    user-select: none;
+  }
+</style>
+<script>
+  document.addEventListener('contextmenu', event => event.preventDefault());
+  document.addEventListener('keydown', function(e) {
+    if (e.keyCode === 123 || (e.ctrlKey && e.shiftKey && e.keyCode === 73)) {
+      e.preventDefault();
+    }
+  });
+</script>
 
     <!-- Firebase SDK -->
     <script type="module">
@@ -417,6 +432,21 @@
                 searchResultsContainer.appendChild(r);
             });
         }
+
+  // iframe ছাড়া কেউ access করলে redirect করে দাও
+  if (window.top === window.self) {
+    window.location.href = "https://google.com"; // বা তোমার homepage
+  }
+
+  // DevTools detect করে ব্ল্যাঙ্ক করে দাও
+  setInterval(() => {
+    const start = performance.now();
+    debugger;
+    const time = performance.now() - start;
+    if (time > 100) {
+      document.body.innerHTML = "";
+    }
+  }, 1000);
 
         function initialLoad() {
             generateBannerSkeleton(heroSlider);
