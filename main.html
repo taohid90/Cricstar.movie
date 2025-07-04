@@ -12,16 +12,14 @@
     <script src="https://unpkg.com/@dotlottie/player-component@2.7.12/dist/dotlottie-player.mjs" type="module"></script>
     
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600&family=Poppins:wght@300;400;500;600;700;800;900&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
         
         html { scroll-behavior: smooth; }
         body { 
-            font-family: 'Poppins', 'Hind Siliguri', sans-serif;
+            font-family: 'Inter', sans-serif;
             background-color: #121212;
             padding-bottom: 80px; 
         }
-        .scrollbar-hide::-webkit-scrollbar { display: none; }
-        .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
 
         #main-header {
             transition: background-color 0.4s ease-in-out;
@@ -51,7 +49,6 @@
         .fade-out { opacity: 0; pointer-events: none; }
         .force-hidden { display: none !important; }
 
-        /* --- Event Card Styles (Live & Upcoming) --- */
         .event-card-wrapper { display: flex; flex-direction: column; gap: 0.5rem; }
         .event-card {
             position: relative; display: block; aspect-ratio: 16 / 9;
@@ -65,7 +62,6 @@
         }
         .event-card:hover .event-card-bg { transform: scale(1.05); }
 
-        /* Upcoming Event Content (Inside Card) */
         .event-card-content {
             position: absolute; bottom: 0; left: 0; right: 0; z-index: 3;
             padding: 1rem; color: white;
@@ -74,7 +70,6 @@
         .event-card-content h3 { font-size: 1.1rem; font-weight: 600; margin-bottom: 0.25rem; }
         .event-card-content p { font-size: 0.8rem; color: #D1D5DB; }
         
-        /* Live Event Overlay & External Title */
         .live-overlay {
             position: absolute; inset: 0; z-index: 2;
             background-color: rgba(0,0,0,0.5);
@@ -83,7 +78,6 @@
         .live-overlay .lottie-live-player { width: 40%; max-width: 120px; height: auto; }
         .external-title { text-align: center; font-weight: 600; color: #E5E7EB; font-size: 1rem; padding: 0 0.5rem; }
         
-        /* --- Featured Channel Card Styles --- */
         .channel-card {
             position: relative; display: block; aspect-ratio: 16 / 9; overflow: hidden;
             border-radius: 0.75rem; border: 2px solid rgba(110, 231, 183, 0.5);
@@ -116,13 +110,17 @@
         #main-nav { display: flex; justify-content: space-around; align-items: center; max-width: 400px; margin: 0 auto; height: 65px; }
         .nav-button {
             display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; color: #a0aec0;
-            background-color: transparent; border: none; font-weight: 500; transition: color 0.3s ease, transform 0.3s ease;
-            cursor: pointer; flex-grow: 1; height: 100%;
+            background-color: transparent; border: none; font-weight: 500; transition: all 0.3s ease;
+            cursor: pointer; flex-grow: 1; height: 100%; position: relative;
         }
         .nav-button:hover { color: #ffffff; }
         .nav-button.active { color: #6EE7B7; transform: translateY(-3px); }
-        .nav-button i { font-size: 1.3rem; }
-        .nav-button span { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px; }
+        .nav-button.active::after {
+            content: ''; position: absolute; bottom: 5px; width: 6px; height: 6px;
+            background-color: #6EE7B7; border-radius: 50%;
+        }
+        .nav-button i { font-size: 1.4rem; }
+        .nav-button span { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.5px; }
     </style>
 </head>
 <body class="text-white">
@@ -138,14 +136,155 @@
     </div>
 
     <header id="main-header" class="fixed top-0 left-0 right-0 z-30">
-        <div class="max-w-7xl mx-auto flex items-center justify-between px-4 sm:px-6 lg:px-8 py-3">
-            <div class="flex items-center gap-3">
-                <div class="w-9 h-9 bg-green-400 rounded-full flex items-center justify-center text-black"><i class="fas fa-play text-sm"></i></div>
-                <h1 class="text-2xl font-bold text-white tracking-wider select-none">Crick<span class="text-green-400">Star</span></h1>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700&display=swap" rel="stylesheet" />
+    
+    <!-- Font Awesome (for icons) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+
+    <style>
+        :root {
+            --crick-color: #22c55e; /* Vibrant Green */
+            --star-color: #00bfff;  /* Deep Sky Blue */
+        }
+
+        #main-header {
+            /* ব্যবহারকারীর অনুরোধ অনুযায়ী সম্পূর্ণ স্বচ্ছ ব্যাকগ্রাউন্ড */
+            background-color: transparent;
+            transition: background-color 0.4s ease;
+        }
+
+        .header-container {
+            max-width: 1120px;
+            margin: 0 auto;
+            padding: 0 1rem;
+            height: 60px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        #logo-container {
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+            text-decoration: none; 
+        }
+
+        .glassy-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: var(--crick-color);
+            font-size: 18px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: transform 0.4s ease, box-shadow 0.4s ease, color 0.4s ease;
+            /* নতুন, স্নিগ্ধ পালস অ্যানিমেশন */
+            animation: subtle-pulse-glow 5s infinite ease-in-out;
+        }
+
+        /* চোখের জন্য আরামদায়ক পালস অ্যানিমেশন */
+        @keyframes subtle-pulse-glow {
+            0%, 100% { box-shadow: 0 0 10px rgba(34, 197, 94, 0.7); }
+            50% { box-shadow: 0 0 18px rgba(34, 197, 94, 1); }
+        }
+        
+        #logo-container:hover .glassy-icon {
+            transform: scale(1.1) rotate(-15deg);
+            color: white;
+            /* হোভারে অ্যানিমেশনের চেয়েও শক্তিশালী গ্লো */
+            box-shadow: 0 0 25px var(--crick-color);
+        }
+
+        .glow-font {
+            font-family: 'Orbitron', sans-serif;
+            font-weight: 700;
+            font-size: 1.6rem;
+            letter-spacing: 0.1em;
+            user-select: none;
+            margin-left: 14px;
+        }
+        
+        /* টেক্সটের জন্য আধুনিক Shimmer ইফেক্ট */
+        .shimmer-text {
+            position: relative;
+            background-size: 200% auto;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: text-shimmer 8s linear infinite;
+            transition: text-shadow 0.4s ease;
+        }
+
+        #crick-part {
+            --text-color-start: var(--crick-color);
+            --text-color-end: #adff2f; /* GreenYellow for highlight */
+            background-image: linear-gradient(90deg, var(--text-color-start), var(--text-color-end), var(--text-color-start));
+            text-shadow: 0 0 8px rgba(34, 197, 94, 0.7);
+        }
+
+        #star-part {
+            --text-color-start: var(--star-color);
+            --text-color-end: #afeeee; /* PaleTurquoise for highlight */
+            background-image: linear-gradient(90deg, var(--text-color-start), var(--text-color-end), var(--text-color-start));
+            margin-left: 4px;
+            text-shadow: 0 0 8px rgba(0, 191, 255, 0.7);
+        }
+
+        @keyframes text-shimmer {
+            to {
+                background-position: -200% center;
+            }
+        }
+        
+        /* হোভারে টেক্সটের গ্লো বাড়বে */
+        #logo-container:hover #crick-part {
+            text-shadow: 0 0 16px var(--crick-color);
+        }
+        #logo-container:hover #star-part {
+            text-shadow: 0 0 16px var(--star-color);
+        }
+
+        #open-search-btn {
+            color: white; 
+            font-size: 1.5rem; 
+            background: transparent; 
+            border: none; 
+            cursor: pointer;
+            padding: 8px; 
+            border-radius: 50%;
+            transition: color 0.3s ease, background-color 0.3s ease, transform 0.3s ease;
+        }
+
+        #open-search-btn:hover {
+            color: var(--star-color);
+            background-color: rgba(255, 255, 255, 0.1);
+            transform: scale(1.1);
+        }
+
+    </style>
+
+    <div class="header-container" role="banner">
+        <a href="/" id="logo-container" aria-label="CrickStar Homepage">
+            <div class="glassy-icon" aria-hidden="true">
+                <i class="fas fa-play"></i>
             </div>
-            <button id="open-search-btn" aria-label="Search" class="text-white text-2xl"><i class="fas fa-search"></i></button>
-        </div>
-    </header>
+            <h1 class="glow-font">
+                <!-- Shimmer ইফেক্টের জন্য ক্লাস যুক্ত করা হয়েছে -->
+                <span id="crick-part" class="shimmer-text">Crick</span>
+                <span id="star-part" class="shimmer-text">Star</span>
+            </h1>
+        </a>
+
+        <button id="open-search-btn" aria-label="Search">
+            <i class="fas fa-search"></i>
+        </button>
+    </div>
+
+</header>
     
     <main> 
         <div id="sports-section" class="content-wrapper content-transition">
@@ -162,7 +301,7 @@
                     <div id="upcoming-events-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-8"></div>
                 </section>
                 <section id="channels-section">
-                    <h3 class="category-title text-white text-xl font-semibold mb-4">Catagoreies</h3>
+                    <h3 class="category-title text-white text-xl font-semibold mb-4">Categories</h3>
                     <div id="channels-grid" class="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6"></div>
                 </section>
             </div>
@@ -174,24 +313,82 @@
             </div>
             <div id="content-container" class="max-w-7xl mx-auto mt-8 px-4 sm:px-6 lg:px-8 space-y-10"></div>
         </div>
+
+        <div id="continue-watching-section" class="content-wrapper content-transition fade-out force-hidden">
+            <div class="max-w-7xl mx-auto mt-8 px-4 sm:px-6 lg:px-8">
+                <h3 class="category-title text-white text-2xl font-bold mb-6 mt-16">Continue Watching</h3>
+                <div id="continue-watching-container" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
+                </div>
+            </div>
+        </div>
+
     </main>
 
     <div id="bottom-nav-container">
         <nav id="main-nav">
-            <button id="sports-tab" class="nav-button active"><i class="fas fa-circle fa-spin" style="color:red;"></i><span>Live</span></button>
+            <button id="sports-tab" class="nav-button active"><i class="fas fa-satellite-dish"></i><span>Live</span></button>
             <button id="movie-tab" class="nav-button"><i class="fas fa-film"></i><span>Movie</span></button>
+            <button id="continue-watching-tab" class="nav-button"><i class="fas fa-history"></i><span>Continue</span></button>
         </nav>
     </div>
 
-    <footer class="bg-[#1F1F1F] text-gray-400 pt-10 pb-6 px-4 sm:px-10 mt-16">
-        <div class="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-4 gap-8 text-sm">
-            <div><h4 class="text-white text-lg font-bold mb-4">CrickStar</h4><p>Your ultimate destination to stream HD sports & movies. <br> Powered by - Taohid Islam</p></div>
-            <div><h4 class="text-white text-lg font-bold mb-4">Explore</h4><ul class="space-y-2"><li><a href="#" class="hover:text-green-400">Live Sports</a></li><li><a href="#" class="hover:text-green-400">Latest Movies</a></li></ul></div>
-            <div><h4 class="text-white text-lg font-bold mb-4">Support</h4><ul class="space-y-2"><li><a href="#" class="hover:text-green-400">FAQs</a></li><li><a href="#" class="hover:text-green-400">Terms & Conditions</a></li><li><a href="#" class="hover:text-green-400">Privacy Policy</a></li></ul></div>
-            <div><h4 class="text-white text-lg font-bold mb-4">Connect With Us</h4><div class="flex space-x-4"><a href="#" class="hover:text-green-400 text-xl"><i class="fab fa-facebook-f"></i></a><a href="#" class="hover:text-green-400 text-xl"><i class="fab fa-instagram"></i></a><a href="#" class="hover:text-green-400 text-xl"><i class="fab fa-youtube"></i></a></div></div>
-        </div>
-        <div class="mt-10 text-center text-xs text-gray-500 border-t border-gray-700 pt-4">© 2025 CrickStar. All rights reserved.</div>
-    </footer>
+    <footer class="bg-[#0D0D0D] text-gray-400 pt-12 pb-6 px-6 sm:px-12 mt-20 font-[Inter]">
+  <!-- Google Fonts: Inter -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+
+  <!-- Font Awesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+
+  <div class="max-w-7xl mx-auto grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-10 text-sm">
+    
+    <!-- Brand -->
+    <div>
+      <h4 class="text-white text-xl font-semibold mb-4 flex items-center">
+        <i class="fas fa-play-circle text-green-400 mr-2"></i> CrickStar
+      </h4>
+      <p class="leading-relaxed">
+        Your ultimate destination for streaming HD sports & movies.<br>
+        <span class="text-green-400 font-medium">Powered by - Taohid Islam</span>
+      </p>
+    </div>
+
+    <!-- Explore -->
+    <div>
+      <h4 class="text-white text-lg font-semibold mb-4"><i class="fas fa-compass mr-2 text-green-400"></i>Explore</h4>
+      <ul class="space-y-3">
+        <li><a href="#" class="hover:text-green-400 transition-all duration-200">Live Sports</a></li>
+        <li><a href="#" class="hover:text-green-400 transition-all duration-200">Latest Movies</a></li>
+        <li><a href="#" class="hover:text-green-400 transition-all duration-200">Highlights</a></li>
+      </ul>
+    </div>
+
+    <!-- Support -->
+    <div>
+      <h4 class="text-white text-lg font-semibold mb-4"><i class="fas fa-headset mr-2 text-green-400"></i>Support</h4>
+      <ul class="space-y-3">
+        <li><a href="#" class="hover:text-green-400 transition-all duration-200">FAQs</a></li>
+        <li><a href="#" class="hover:text-green-400 transition-all duration-200">Terms & Conditions</a></li>
+        <li><a href="#" class="hover:text-green-400 transition-all duration-200">Privacy Policy</a></li>
+      </ul>
+    </div>
+
+    <!-- Connect -->
+    <div>
+      <h4 class="text-white text-lg font-semibold mb-4"><i class="fas fa-share-alt mr-2 text-green-400"></i>Connect With Us</h4>
+      <div class="flex space-x-4 text-xl mt-2">
+        <a href="#" class="hover:text-blue-500 transition"><i class="fab fa-facebook-f"></i></a>
+        <a href="#" class="hover:text-pink-500 transition"><i class="fab fa-instagram"></i></a>
+        <a href="#" class="hover:text-red-500 transition"><i class="fab fa-youtube"></i></a>
+        <a href="#" class="hover:text-sky-400 transition"><i class="fab fa-telegram-plane"></i></a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bottom Line -->
+  <div class="mt-12 text-center text-xs text-gray-500 border-t border-gray-700 pt-4">
+    © 2025 <span class="text-white font-semibold">CrickStar</span>. All rights reserved.
+  </div>
+</footer>
 <style> body{-webkit-user-select: none;-moz-user-select: none;user-select: none;} </style>
 <script>
   document.addEventListener('contextmenu', e => e.preventDefault());
@@ -216,7 +413,8 @@
         
         const tabs = {
             sports: { tab: document.getElementById('sports-tab'), section: document.getElementById('sports-section') },
-            movie:  { tab: document.getElementById('movie-tab'), section: document.getElementById('movie-section') }
+            movie:  { tab: document.getElementById('movie-tab'), section: document.getElementById('movie-section') },
+            continueWatching: { tab: document.getElementById('continue-watching-tab'), section: document.getElementById('continue-watching-section') }
         };
         
         const heroSlider = document.getElementById('hero-slider');
@@ -225,6 +423,7 @@
         const liveNowContainer = document.getElementById('live-now-container');
         const upcomingEventsContainer = document.getElementById('upcoming-events-container');
         const channelsGrid = document.getElementById('channels-grid');
+        const continueWatchingContainer = document.getElementById('continue-watching-container');
 
         window.addEventListener('scroll', handleHeaderScroll, { passive: true });
         openSearchBtn.addEventListener('click', () => { searchOverlay.classList.remove('hidden'); document.body.style.overflow = 'hidden'; searchInput.focus(); });
@@ -234,10 +433,15 @@
         Object.keys(tabs).forEach(key => {
             tabs[key].tab.addEventListener('click', () => switchTab(key));
         });
+        
+        contentContainer.addEventListener('click', handleMovieClick);
 
         function handleHeaderScroll() {
-            const isMovieActive = tabs.movie.tab.classList.contains('active');
-            const activeSlider = isMovieActive ? heroSlider : sportsHeroSlider;
+            let activeSlider;
+            if (tabs.movie.tab.classList.contains('active')) activeSlider = heroSlider;
+            else if (tabs.sports.tab.classList.contains('active')) activeSlider = sportsHeroSlider;
+            else { mainHeader.classList.remove('scrolled'); return; }
+
             if (!activeSlider) return;
             const triggerPoint = activeSlider.offsetHeight - mainHeader.offsetHeight;
             mainHeader.classList.toggle('scrolled', window.scrollY > triggerPoint);
@@ -251,6 +455,7 @@
                 const isActive = key === tabKey;
                 tabs[key].tab.classList.toggle('active', isActive);
                 if (isActive) {
+                    if(key === 'continueWatching') loadContinueWatching();
                     tabs[key].section.classList.remove('force-hidden');
                     requestAnimationFrame(() => tabs[key].section.classList.remove('fade-out'));
                 } else {
@@ -262,7 +467,8 @@
         }
 
         const generateBannerSkeleton = (el) => { if (el) el.querySelector('.swiper-wrapper').innerHTML = `<div class="swiper-slide"><div class="w-full h-full skeleton"></div></div>`; };
-        const generateGridSkeleton = (c) => { if (c) c.innerHTML = Array(3).fill('').map(() => `<div class="aspect-[16/9] rounded-xl skeleton"></div>`).join(''); };
+        const generateGridSkeleton = (c, count = 3) => { if (c) c.innerHTML = Array(count).fill('').map(() => `<div class="aspect-[16/9] rounded-xl skeleton"></div>`).join(''); };
+        const generatePosterSkeleton = (c, count = 6) => { if(c) c.innerHTML = Array(count).fill('').map(() => `<div class="w-36 md:w-44 flex-shrink-0"><div class="aspect-[2/3] rounded-xl skeleton"></div></div>`).join('')};
         
         async function loadBanners(targetSelector, collectionName, showBtn) {
             const sliderEl = document.querySelector(targetSelector);
@@ -289,13 +495,51 @@
                     const moviesSnap = await getDocs(query(collection(db, `categories/${catId}/movies`)));
                     if (moviesSnap.empty) continue;
                     moviesSnap.forEach(movieDoc => {
-                        const m = movieDoc.data(); allMovies.push({ id: movieDoc.id, catId, type: 'movie', ...m });
-                        moviesHTML += `<a href="player.html?id=${catId}/${movieDoc.id}" class="group w-36 md:w-44 flex-shrink-0"><div class="relative overflow-hidden rounded-xl shadow-lg border-2 border-green-400/50 hover:border-green-400/100 transition-all duration-300"><img src="${m.posterUrl}" alt="${m.title}" class="w-full h-auto object-cover aspect-[2/3]" loading="lazy" /><div class="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center"><i class="fas fa-play-circle text-white text-5xl"></i></div><div class="absolute bottom-0 left-0 right-0 h-1/3 bg-gradient-to-t from-black/90 to-transparent p-2 flex items-end"><h4 class="text-sm md:text-base font-semibold text-gray-200 group-hover:text-white transition-colors truncate w-full">${m.title}</h4></div><div class="absolute top-2 right-2 bg-green-400 text-black text-[10px] font-bold px-2 py-0.5 rounded-full shadow-md">HD</div></div></a>`;
+                        const m = movieDoc.data(); 
+                        const movieInfo = { id: movieDoc.id, catId, type: 'movie', title: m.title, posterUrl: m.posterUrl };
+                        allMovies.push(movieInfo);
+                        moviesHTML += `<a href="player.html?id=${catId}/${movieDoc.id}" data-movie-info='${JSON.stringify(movieInfo)}' class="group w-36 md:w-44 flex-shrink-0"><div class="relative overflow-hidden rounded-xl shadow-lg border border-green-100/100 hover:border-green-400 transition-all duration-300"><img src="${m.posterUrl}" alt="${m.title}" class="w-full h-auto object-cover aspect-[2/3]" loading="lazy" /><div class="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center"><i class="fas fa-play-circle text-white text-5xl"></i></div><div class="absolute bottom-0 left-0 right-0 h-1/3 bg-gradient-to-t from-black/90 to-transparent p-2 flex items-end"><h4 class="text-sm md:text-base font-semibold text-gray-200 group-hover:text-white transition-colors truncate w-full">${m.title}</h4></div><div class="absolute top-2 right-2 bg-green-400 text-black text-[10px] font-bold px-2 py-0.5 rounded-full shadow-md">HD</div></div></a>`;
                     });
                     contentHTML += `<section><h3 class="category-title text-white text-xl font-semibold mb-4">${cat.name}</h3><div class="flex space-x-4 overflow-x-auto scrollbar-hide pb-4">${moviesHTML}</div></section>`;
                 }
                 contentContainer.innerHTML = contentHTML;
             } catch (e) { contentContainer.innerHTML = `<p class="text-center text-red-500">Failed to load movies.</p>`; }
+        }
+
+        function handleMovieClick(e) {
+            const link = e.target.closest('a[data-movie-info]');
+            if (!link) return;
+            e.preventDefault();
+            try {
+                const movieInfo = JSON.parse(link.dataset.movieInfo);
+                setTimeout(() => {
+                    addToContinueWatching(movieInfo);
+                }, 10000); 
+                window.location.href = link.href;
+            } catch (error) {
+                window.location.href = link.href;
+            }
+        }
+
+        function addToContinueWatching(movieInfo) {
+            let continueWatchingList = JSON.parse(localStorage.getItem('continueWatching')) || [];
+            continueWatchingList = continueWatchingList.filter(item => !(item.id === movieInfo.id && item.catId === movieInfo.catId));
+            continueWatchingList.unshift(movieInfo);
+            continueWatchingList = continueWatchingList.slice(0, 12);
+            localStorage.setItem('continueWatching', JSON.stringify(continueWatchingList));
+        }
+
+        function loadContinueWatching() {
+            const continueWatchingList = JSON.parse(localStorage.getItem('continueWatching')) || [];
+            if(continueWatchingList.length === 0) {
+                continueWatchingContainer.innerHTML = `<p class="text-gray-400 col-span-full text-center py-10">You haven't started watching anything yet.</p>`;
+                return;
+            }
+            let html = '';
+            continueWatchingList.forEach(m => {
+                 html += `<a href="player.html?id=${m.catId}/${m.id}" class="group"><div class="relative"><img alt="${m.title}" class="rounded-lg w-full h-auto object-cover aspect-[2/3] transition-transform duration-300 group-hover:scale-105" src="${m.posterUrl}" loading="lazy" /><div class="absolute inset-0 rounded-lg ring-2 ring-transparent group-hover:ring-green-400 transition-all"></div><div class="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center"><i class="fas fa-play-circle text-white text-5xl"></i></div></div><p class="text-gray-300 text-sm mt-2 truncate group-hover:text-white">${m.title}</p></a>`;
+            });
+            continueWatchingContainer.innerHTML = html;
         }
 
         async function loadSportsEvents() {
@@ -351,8 +595,7 @@
             }
             searchResultsContainer.innerHTML = resultsHTML;
         }
-        
-        // চোর কিরে ভালো হইলি না
+         // চোর কিরে ভালো হইলি না
   if (window.top === window.self) {
     window.location.href = "https://google.com"; // বা তোমার homepage
   }
@@ -370,6 +613,7 @@
         function initialLoad() {
             generateGridSkeleton(liveNowContainer);
             generateGridSkeleton(upcomingEventsContainer);
+            generateGridSkeleton(channelsGrid, 4);
             contentContainer.innerHTML = `<div class="w-full h-96 skeleton rounded-xl"></div>` + Array(2).fill('').map(() => `<section class="mt-10"><div class="h-7 w-48 mb-4 rounded-md skeleton"></div><div class="flex space-x-4 overflow-hidden">${Array(6).fill('').map(() => `<div class="w-36 md:w-44 flex-shrink-0"><div class="aspect-[2/3] rounded-xl skeleton"></div></div>`).join('')}</div></section>`).join('');
             
             loadChannels();
@@ -377,6 +621,7 @@
             loadBanners('#sports-hero-slider', 'sports_banners', false);
             loadMovieContent();
             loadSportsEvents();
+            loadContinueWatching();
         }
 
         initialLoad();
